@@ -5,7 +5,10 @@ from PIL import Image
 import io
 from app.config import settings
 
+
 class S3Service:
+    """Servicio para gestión de archivos en AWS S3"""
+    
     def __init__(self):
         self.s3_client = boto3.client(
             's3',
@@ -15,25 +18,52 @@ class S3Service:
         )
         self.bucket_name = settings.S3_BUCKET_NAME
 
-    def upload_profile_img(self, file_content: bytes, user_id: str, max_size_mb: int = 5, allowed_formats: tuple = ('JPEG', 'PNG', 'WEBP')) -> dict:
+    def upload_profile_img(
+        self, 
+        file_content: bytes, 
+        user_id: str, 
+        max_size_mb: int = 5, 
+        allowed_formats: tuple = ('JPEG', 'PNG', 'WEBP')
+    ) -> dict:
+        """
+        Sube una imagen de perfil a S3.
+        
+        Args:
+            file_content: Contenido del archivo en bytes
+            user_id: ID del usuario
+            max_size_mb: Tamaño máximo permitido en MB
+            allowed_formats: Formatos de imagen permitidos
+            
+        Returns:
+            Dict con success, file_url y file_name o error
+        """
         try:
-            # Tamaño del archivo en MB
+            # Validar tamaño del archivo
             file_size = len(file_content) / (1024 * 1024)
             if file_size > max_size_mb:
-                return {"success": False, "error": f"El tamaño del archivo excede el limite de {max_size_mb} MB"}
+                return {
+                    "success": False, 
+                    "error": f"El tamaño del archivo excede el límite de {max_size_mb} MB"
+                }
             
-            # Abrir la imagen para verificar formato
+            # Abrir y validar la imagen
             try:
                 img = Image.open(io.BytesIO(file_content))
                 img_format = img.format
 
                 if img_format not in allowed_formats:
-                    return {"success": False, "error": f"Formato de imagen no permitido. Los formatos permitidos son: {", ".join(allowed_formats)}"}
+                    return {
+                        "success": False, 
+                        "error": f"Formato no permitido. Permitidos: {', '.join(allowed_formats)}"
+                    }
 
             except Exception as e:
-                return {"success": False, "error": f"El archivo no es una imagen válida o está corrupto. Detalle: {str(e)}"}
+                return {
+                    "success": False, 
+                    "error": f"El archivo no es una imagen válida: {str(e)}"
+                }
             
-            # Redimensiona la imagen
+            # Redimensionar la imagen si es necesario
             max_dimension = 1024
             if max(img.size) > max_dimension:
                 img.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
@@ -41,7 +71,7 @@ class S3Service:
                 img.save(output, format=img_format, optimize=True, quality=85)
                 file_content = output.getvalue()
 
-            # Lógica para S3
+            # Preparar para subir a S3
             file_ext = img_format.lower()
             file_name = f"profile_images/{user_id}/{uuid.uuid4()}.{file_ext}"
 
@@ -50,49 +80,70 @@ class S3Service:
                 'png': 'image/png',
                 'webp': 'image/webp'
             }
-            content_type = content_types.get(file_ext, 'image/jpeg') 
+            content_type = content_types.get(file_ext, 'image/jpeg')
 
             # Subir el archivo
             self.s3_client.put_object(
                 Bucket=self.bucket_name,
                 Key=file_name,
-                Body=file_content, 
+                Body=file_content,
                 ContentType=content_type,
                 Metadata={'user_id': user_id}
             )
 
             img_url = f"https://{self.bucket_name}.s3.{settings.AWS_REGION}.amazonaws.com/{file_name}"
 
-            return {"success": True, "file_url": img_url, "file_name": file_name}
+            return {
+                "success": True, 
+                "file_url": img_url, 
+                "file_name": file_name
+            }
         
-        # --- CORRECCIÓN FINAL DE SINTAXIS (EXTERNAS) ---
         except ClientError as e:
             return {"success": False, "error": f"Error al subir a S3: {str(e)}"}
         
         except Exception as e:
             return {"success": False, "error": f"Error inesperado: {str(e)}"}
         
-    def upload_product_img(self, file_content: bytes, user_id: str, max_size_mb: int = 5, allowed_formats: tuple = ('JPEG', 'PNG', 'WEBP')) -> dict:
-        """Sube una imagen de producto a S3, similar a la de perfil pero con ruta diferente."""
+    def upload_product_img(
+        self, 
+        file_content: bytes, 
+        product_id: str, 
+        max_size_mb: int = 5, 
+        allowed_formats: tuple = ('JPEG', 'PNG', 'WEBP')
+    ) -> dict:
+        """
+        Sube una imagen de producto a S3.
+        
+        Similar a upload_profile_img pero con ruta diferente.
+        """
         try:
-            # Tamaño del archivo en MB
+            # Validar tamaño
             file_size = len(file_content) / (1024 * 1024)
             if file_size > max_size_mb:
-                return {"success": False, "error": f"El tamaño del archivo excede el limite de {max_size_mb} MB"}
+                return {
+                    "success": False, 
+                    "error": f"El tamaño del archivo excede el límite de {max_size_mb} MB"
+                }
             
-            # Abrir la imagen para verificar formato
+            # Validar imagen
             try:
                 img = Image.open(io.BytesIO(file_content))
                 img_format = img.format
 
                 if img_format not in allowed_formats:
-                    return {"success": False, "error": f"Formato de imagen no permitido. Los formatos permitidos son: {", ".join(allowed_formats)}"}
+                    return {
+                        "success": False, 
+                        "error": f"Formato no permitido. Permitidos: {', '.join(allowed_formats)}"
+                    }
             
-            # --- CORRECCIÓN FINAL DE SINTAXIS ---
             except Exception as e:
-                return {"success": False, "error": f"El archivo no es una imagen válida o está corrupto. Detalle: {str(e)}"}
+                return {
+                    "success": False, 
+                    "error": f"El archivo no es una imagen válida: {str(e)}"
+                }
             
-            # Redimensiona la imagen
+            # Redimensionar
             max_dimension = 1024
             if max(img.size) > max_dimension:
                 img.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
@@ -100,33 +151,56 @@ class S3Service:
                 img.save(output, format=img_format, optimize=True, quality=85)
                 file_content = output.getvalue()
 
-            # Lógica para S3
+            # Preparar para S3
             file_ext = img_format.lower()
-            file_name = f"product_images/{user_id}/{uuid.uuid4()}.{file_ext}" # Carpeta diferente
+            file_name = f"product_images/{product_id}/{uuid.uuid4()}.{file_ext}"
 
             content_types = {
                 'jpeg': 'image/jpeg',
                 'png': 'image/png',
                 'webp': 'image/webp'
             }
-            content_type = content_types.get(file_ext, 'image/jpeg') 
+            content_type = content_types.get(file_ext, 'image/jpeg')
 
-            # Subir el archivo
+            # Subir
             self.s3_client.put_object(
                 Bucket=self.bucket_name,
                 Key=file_name,
-                Body=file_content, 
+                Body=file_content,
                 ContentType=content_type,
-                Metadata={'user_id': user_id}
+                Metadata={'product_id': product_id}
             )
 
             img_url = f"https://{self.bucket_name}.s3.{settings.AWS_REGION}.amazonaws.com/{file_name}"
 
-            return {"success": True, "file_url": img_url, "file_name": file_name}
+            return {
+                "success": True, 
+                "file_url": img_url, 
+                "file_name": file_name
+            }
         
         except ClientError as e:
             return {"success": False, "error": f"Error al subir a S3: {str(e)}"}
         
         except Exception as e:
             return {"success": False, "error": f"Error inesperado: {str(e)}"}
+    
+    def delete_file(self, file_key: str) -> dict:
+        """
+        Elimina un archivo de S3.
+        
+        Args:
+            file_key: Ruta del archivo en S3 (ej: "profile_images/123/uuid.jpg")
             
+        Returns:
+            Dict con success y message o error
+        """
+        try:
+            self.s3_client.delete_object(
+                Bucket=self.bucket_name,
+                Key=file_key
+            )
+            return {"success": True, "message": "Archivo eliminado correctamente"}
+        
+        except ClientError as e:
+            return {"success": False, "error": f"Error al eliminar de S3: {str(e)}"}
