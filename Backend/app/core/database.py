@@ -1,32 +1,30 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from typing import Generator
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+import os
 
-# Usar SQLite
-DATABASE_URL = "sqlite:///./befit.db"
+# obtenemos el url de la bd desde las variables de entorno ubicados en .env
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
 
-# Crear engine con configuraciones para SQLite
+# parametros de conexion a sqlite
 engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    echo=False  # Cambia a True si quieres ver las queries SQL
+    DATABASE_URL, connect_args={"check_same_thread": False}
 )
 
-# Crear sesión
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine) 
+Base = declarative_base()
 
-# Base moderna para los modelos
-class Base(DeclarativeBase):
-    pass
-
-# Dependency para obtener la sesión de base de datos
-def get_db() -> Generator:
-    """
-    Dependencia que proporciona una sesión de base de datos.
-    Se cierra automáticamente después de cada request.
-    """
+# Funcion para crear una nueva secion a la bd
+def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
-        db.close()
+        db.close()  
+# version con rds
+#DATABASE_URL_RDS = os.getenv("DATABASE_RDS")
+
+#engine_rds = create_engine(DATABASE_URL_RDS)
+
+#SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine) 
+#Base = declarative_base()

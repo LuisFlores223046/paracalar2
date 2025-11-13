@@ -1,56 +1,36 @@
-from sqlalchemy import Integer, String, Float, Text, ForeignKey, Boolean
+from sqlalchemy import Integer, String, Text, Numeric, JSON, Boolean, DateTime
 from sqlalchemy.orm import relationship, Mapped, mapped_column
-from typing import Optional, List
-from datetime import datetime
+from typing import List, Optional
 from decimal import Decimal
+from datetime import datetime, UTC
 from app.core.database import Base
 
-
 class Product(Base):
-    __tablename__ = "products"
+    __tablename__ = "product"
     
-    # ============ KEYS ============
-    product_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, index=True)
-    category_id: Mapped[Optional[int]] = mapped_column(
-        Integer, 
-        ForeignKey("categories.category_id", ondelete="SET NULL"), 
-        nullable=True
-    )
-    
-    # ============ ATTRIBUTES ============
+    # Keys
+    product_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    # Attributes
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    price: Mapped[float] = mapped_column(Float, nullable=False)
-    stock: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    average_rating: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
-    
-    # ============ CAMPOS PARA FILTRADO ============
-    fitness_objective: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    physical_activity: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    
-    # ============ SEO Y METADATOS ============
-    sku: Mapped[Optional[str]] = mapped_column(String(100), unique=True, nullable=True)
-    brand: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    
-    # ============ CONTROL ============
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    brand: Mapped[str] = mapped_column(String(100), nullable=False)
+    category: Mapped[str] = mapped_column(String(100)) # Changed to attribute
+    physical_activities: Mapped[list] = mapped_column(JSON) # Added - For filtering
+    fitness_objectives: Mapped[list] = mapped_column(JSON) # Added - For filtering
+    nutritional_value: Mapped[str] = mapped_column(Text, nullable=False)
+    price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    stock: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    average_rating: Mapped[Optional[Decimal]] = mapped_column(Numeric(2, 1), nullable=True, default=None)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now(UTC))
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now(UTC), onupdate=datetime.now(UTC))
     
-    # ============ RELACIONES ============
-    category: Mapped[Optional["Category"]] = relationship("Category", back_populates="products")
-    images: Mapped[List["ProductImage"]] = relationship(
-        "ProductImage", 
-        back_populates="product", 
-        cascade="all, delete-orphan"
-    )
-    reviews: Mapped[List["Review"]] = relationship(
-        "Review", 
-        back_populates="product", 
-        cascade="all, delete-orphan"
-    )
+    # Relationships
+    product_images: Mapped[List["ProductImage"]] = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
     cart_items: Mapped[List["CartItem"]] = relationship("CartItem", back_populates="product")
     order_items: Mapped[List["OrderItem"]] = relationship("OrderItem", back_populates="product")
+    reviews: Mapped[List["Review"]] = relationship("Review", back_populates="product", cascade="all, delete-orphan")
     
     def __repr__(self) -> str:
         return f"<Product(product_id={self.product_id}, name={self.name})>"

@@ -1,24 +1,25 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, validator
 from typing import Optional
 from datetime import date
 import re
+from app.models.enum import UserRole
 
-
-# ============ REGISTRO DE USUARIO ============
-
+"""
+Schema para registro de usuario
+"""
 class SignUpRequest(BaseModel):
-    """Schema para registro de usuario"""
     email: EmailStr
     password: str = Field(..., min_length=8)
     first_name: str = Field(..., min_length=2, max_length=50)
     last_name: str = Field(..., min_length=2, max_length=50)
-    gender: Optional[str] = Field(None, pattern="^(M|F|prefer_not_say)$")
+    gender: Optional[str] = Field(None, pattern="^(M|F|prefer_not_say)$") # M para male y F para female
     birth_date: Optional[date] = None
+    role: UserRole = Field(default=UserRole.USER, description="El rol del usuario (por defecto: USER)")
     
-    @field_validator('password')
-    @classmethod
+    # Validador basado de cognito para contraseñas
+    @validator('password')
     def validate_password(cls, v):
-        """Valida que la contraseña cumpla con requisitos de Cognito"""
+
         if not any(char.isdigit() for char in v):
             raise ValueError('La contraseña debe contener al menos un número')
         
@@ -33,48 +34,47 @@ class SignUpRequest(BaseModel):
            
         return v
     
-    model_config = {
-        "json_schema_extra": {
+    class Config:
+        json_schema_extra = {
             "example": {
                 "email": "usuario@example.com",
-                "password": "MiPassword123!",
+                "password": "MiPassword123",
                 "first_name": "Juan",
                 "last_name": "Pérez",
-                "gender": "M",
+                "gender": "male",
                 "birth_date": "1990-01-15"
             }
         }
-    }
 
-
+"""
+Schema para respuesta de registro
+"""
 class SignUpResponse(BaseModel):
-    """Respuesta de registro"""
     success: bool
     message: str
     user_sub: Optional[str] = None
     user_id: Optional[str] = None
     profile_image_url: Optional[str] = None
 
-
-# ============ INICIO DE SESIÓN ============
-
+"""
+Schema para inicio de sesion
+"""
 class SignInRequest(BaseModel):
-    """Schema para inicio de sesión"""
     email: EmailStr
     password: str
     
-    model_config = {
-        "json_schema_extra": {
+    class Config:
+        json_schema_extra = {
             "example": {
                 "email": "usuario@example.com",
-                "password": "MiPassword123!"
+                "password": "MiPassword123"
             }
         }
-    }
 
-
+"""
+Schema para respuesta de tokens
+"""
 class TokenResponse(BaseModel):
-    """Respuesta con tokens JWT"""
     success: bool
     access_token: Optional[str] = None
     id_token: Optional[str] = None
@@ -83,77 +83,72 @@ class TokenResponse(BaseModel):
     token_type: str = "Bearer"
     error: Optional[str] = None
 
-
-# ============ CONFIRMACIÓN ============
-
+"""
+Schema para confirmación de registro
+"""
 class ConfirmSignUpRequest(BaseModel):
-    """Confirmación de registro con código"""
     email: EmailStr
     code: str = Field(..., min_length=6, max_length=6)
     
-    model_config = {
-        "json_schema_extra": {
+    class Config:
+        json_schema_extra = {
             "example": {
                 "email": "usuario@example.com",
                 "code": "123456"
             }
         }
-    }
 
-
+"""
+Schema para reenviar código de verificacion
+"""
 class ResendCodeRequest(BaseModel):
-    """Reenvío de código de verificación"""
     email: EmailStr
     
-    model_config = {
-        "json_schema_extra": {
+    class Config:
+        json_schema_extra = {
             "example": {
                 "email": "usuario@example.com"
             }
         }
-    }
 
-
-# ============ REFRESH TOKEN ============
-
+"""
+Schema para refrescar token
+"""
 class RefreshTokenRequest(BaseModel):
-    """Renovación de token"""
     refresh_token: str
     
-    model_config = {
-        "json_schema_extra": {
+    class Config:
+        json_schema_extra = {
             "example": {
                 "refresh_token": "eyJjdHkiOiJKV1QiLCJlbmMiOiJBMjU2R0NNIiwiYWxnIjoiUlNBLU9BRVAifQ..."
             }
         }
-    }
 
-
-# ============ RECUPERACIÓN DE CONTRASEÑA ============
-
+"""
+Schema para solicitar recuperacion de contraseña
+"""
 class ForgotPasswordRequest(BaseModel):
-    """Solicitud de recuperación de contraseña"""
     email: EmailStr
     
-    model_config = {
-        "json_schema_extra": {
+    class Config:
+        json_schema_extra = {
             "example": {
                 "email": "usuario@example.com"
             }
         }
-    }
 
-
+"""
+Schema para confirmar nueva contraseña
+"""
 class ConfirmForgotPasswordRequest(BaseModel):
-    """Confirmación de nueva contraseña"""
     email: EmailStr
     code: str = Field(..., min_length=6, max_length=6)
     new_password: str = Field(..., min_length=8)
     
-    @field_validator('new_password')
-    @classmethod
+    # Mismo validador de contraseña
+    @validator('new_password')
     def validate_password(cls, v):
-        """Valida que la contraseña cumpla con requisitos"""
+        """Valida que la contraseña cumpla con requisitos mínimos"""
         if not any(char.isdigit() for char in v):
             raise ValueError('La contraseña debe contener al menos un número')
         if not any(char.isupper() for char in v):
@@ -162,26 +157,25 @@ class ConfirmForgotPasswordRequest(BaseModel):
             raise ValueError('La contraseña debe contener al menos una minúscula')
         return v
     
-    model_config = {
-        "json_schema_extra": {
+    class Config:
+        json_schema_extra = {
             "example": {
                 "email": "usuario@example.com",
                 "code": "123456",
-                "new_password": "NuevaPassword123!"
+                "new_password": "NuevaPassword123"
             }
         }
-    }
 
-
+"""
+Schema para cambiar contraseña estando autenticado
+"""
 class ChangePasswordRequest(BaseModel):
-    """Cambio de contraseña estando autenticado"""
     old_password: str
     new_password: str = Field(..., min_length=8)
     
-    @field_validator('new_password')
-    @classmethod
+    @validator('new_password')
     def validate_password(cls, v):
-        """Valida que la contraseña cumpla con requisitos"""
+        """Valida que la contraseña cumpla con requisitos mínimos"""
         if not any(char.isdigit() for char in v):
             raise ValueError('La contraseña debe contener al menos un número')
         if not any(char.isupper() for char in v):
@@ -190,20 +184,18 @@ class ChangePasswordRequest(BaseModel):
             raise ValueError('La contraseña debe contener al menos una minúscula')
         return v
     
-    model_config = {
-        "json_schema_extra": {
+    class Config:
+        json_schema_extra = {
             "example": {
-                "old_password": "MiPassword123!",
-                "new_password": "NuevaPassword456!"
+                "old_password": "MiPassword123",
+                "new_password": "NuevaPassword456"
             }
         }
-    }
 
-
-# ============ RESPUESTA GENÉRICA ============
-
+"""
+Schema genérico para respuestas con mensaje
+"""
 class MessageResponse(BaseModel):
-    """Respuesta con mensaje"""
     success: bool
     message: Optional[str] = None
     error: Optional[str] = None
