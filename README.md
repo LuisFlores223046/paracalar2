@@ -128,4 +128,4 @@ cd Backend
 uvicorn app.main:app --reload
 
 Para cerrar el server una vez que se este ejecutando: ctrl + c
->>>>>>> ae545f49618c3d6fd287a00c52ca51b2ccc0f474
+>>>>>>> b66a8c7cece32e3202a6a03bdbe30fdf5c352fd7
