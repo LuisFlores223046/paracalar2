@@ -186,7 +186,8 @@ def test_user(db):
         date_of_birth=date(1990, 1, 1),
         auth_type=AuthType.EMAIL,
         role=UserRole.USER,
-        account_status=True
+        account_status=True,
+        stripe_customer_id="cus_test_123"
     )
     db.add(user)
     db.commit()

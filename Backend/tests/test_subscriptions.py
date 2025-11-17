@@ -124,7 +124,7 @@ class TestSubscriptionServiceUnit:
 
         # Assert
         assert result["success"] is False
-        assert "perfil" in result["error"].lower() or "fitness" in result["error"].lower()
+        assert "posicionamiento" in result["error"].lower() or "fitness" in result["error"].lower()
 
     def test_get_user_subscription(
         self, db: Session, test_user: User, test_active_subscription: Subscription
