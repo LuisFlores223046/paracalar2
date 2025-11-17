@@ -320,7 +320,9 @@ class TestOrderAPIIntegration:
         # Assert
         assert response.status_code == 200
         data = response.json()
-        assert isinstance(data, list) or "items" in data
+        assert data["success"] is True
+        assert "orders" in data
+        assert isinstance(data["orders"], list)
 
     def test_get_order_detail_endpoint(
         self, user_client, db, test_user, test_address,
@@ -428,7 +430,9 @@ class TestOrderFunctional:
         service.update_order_status(db, order.order_id, OrderStatus.SHIPPED)
 
         # Paso 6: Verificar estado final
-        final_order = service.get_order_by_id(db, order.order_id, test_user.user_id)
-        assert final_order.order_status == OrderStatus.SHIPPED
+        result = service.get_order_by_id(db, test_user.cognito_sub, order.order_id)
+        assert result["success"] is True
+        final_order = result["order"]
+        assert final_order["order_status"] == OrderStatus.SHIPPED.value
 
         print("✅ Prueba funcional de flujo completo de orden completada")
