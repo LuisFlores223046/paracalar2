@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
+from app.api.v1.router import api_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -46,18 +47,30 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# ✅ Ya no necesitas json.loads() - BACKEND_CORS_ORIGINS ya es una lista
 logger.info(f"CORS Origins configurados: {settings.BACKEND_CORS_ORIGINS}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,  # Ya es List[str]
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Esto es una prueba para probar el comando de uvicorn
+# Incluir el router principal de la API
+app.include_router(api_router, prefix="/api/v1")
+
 @app.get("/")
 def root():
-    return {"message": "Welcome to the T1-MFDS 2025 Backend!"}
+    return {
+        "message": "Welcome to the T1-MFDS 2025 Backend!",
+        "docs": "/docs",
+        "api_v1": "/api/v1"
+    }
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "version": settings.APP_VERSION
+    }

@@ -11,7 +11,7 @@ from fastapi import (
     Depends, 
     UploadFile, 
     status, 
-    Form, 
+    Form,
     Security
 )
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -21,7 +21,6 @@ from app.api.v1.auth import schemas
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
