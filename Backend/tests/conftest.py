@@ -5,6 +5,28 @@
 
 import pytest
 import os
+
+# ============================================================================
+# IMPORTANTE: Configurar TODAS las variables de entorno ANTES de importar app
+# ============================================================================
+os.environ["COGNITO_REGION"] = "test"
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["AWS_REGION"] = "us-east-1"
+os.environ["AWS_ACCESS_KEY_ID"] = "test-access-key-id"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "test-secret-access-key"
+os.environ["COGNITO_USER_POOL_ID"] = "test-pool-id"
+os.environ["COGNITO_CLIENT_ID"] = "test-client-id"
+os.environ["S3_BUCKET_NAME"] = "test-bucket"
+os.environ["JWT_SECRET_KEY"] = "test-jwt-secret"
+os.environ["STRIPE_API_KEY"] = "pk_test_12345"
+os.environ["STRIPE_SECRET_KEY"] = "sk_test_12345"
+os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_test_12345"
+os.environ["PAYPAL_CLIENT_ID"] = "test-paypal-client-id"
+os.environ["PAYPAL_CLIENT_SECRET"] = "test-paypal-secret"
+os.environ["PAYPAL_API_BASE_URL"] = "https://api.sandbox.paypal.com"
+os.environ["APP_URL"] = "http://localhost:3000"
+
+# Ahora sí podemos importar la aplicación
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -22,9 +44,6 @@ from app.models.shopping_cart import ShoppingCart
 from app.models.cart_item import CartItem
 from app.models.enum import UserRole, AuthType, Gender
 from app.core.security import hash_password
-
-# Configurar variable de entorno para modo de prueba
-os.environ["COGNITO_REGION"] = "test"
 
 # Configuración de base de datos en memoria para tests
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"

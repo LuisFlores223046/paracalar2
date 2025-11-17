@@ -63,6 +63,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"  # Ignorar campos extra del .env que no estén definidos
         
     def print_debug_info(self):
         """
