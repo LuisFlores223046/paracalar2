@@ -51,9 +51,8 @@ class TestUserProfileServiceUnit:
         assert result["user"]["first_name"] == "Updated"
         assert result["user"]["last_name"] == "Name"
 
-    @patch('app.api.v1.user_profile.service.S3Service')
     def test_update_profile_image(
-        self, mock_s3_service, db: Session, test_user: User
+        self, db: Session, test_user: User
     ):
         """
         Autor: Luis Flores
@@ -66,18 +65,25 @@ class TestUserProfileServiceUnit:
             "file_url": "https://s3.amazonaws.com/test/profile.jpg"
         }
         mock_s3_instance.delete_profile_img.return_value = {"success": True}
-        mock_s3_service.return_value = mock_s3_instance
+
+        # Patch the s3_service instance
+        original_s3 = user_profile_service.s3_service
+        user_profile_service.s3_service = mock_s3_instance
 
         image_content = b"fake_image_content"
 
-        # Act
-        result = user_profile_service.update_profile_image(
-            db=db, cognito_sub=test_user.cognito_sub, image_content=image_content
-        )
+        try:
+            # Act
+            result = user_profile_service.update_profile_image(
+                db=db, cognito_sub=test_user.cognito_sub, image_content=image_content
+            )
 
-        # Assert
-        assert result["success"] is True
-        assert "profile_picture_url" in result
+            # Assert
+            assert result["success"] is True
+            assert "profile_picture_url" in result
+        finally:
+            # Restore original s3_service
+            user_profile_service.s3_service = original_s3
 
     def test_soft_delete_account(self, db: Session, test_user: User):
         """
@@ -101,9 +107,11 @@ class TestUserProfileServiceUnit:
         result = user_profile_service.get_basic_profile(db=db, cognito_sub=test_user.cognito_sub)
 
         # Assert
-        assert "user_id" in result
-        assert "email" in result
-        assert "first_name" in result
+        assert result["success"] is True
+        user_data = result["user"]
+        assert "user_id" in user_data
+        assert "email" in user_data
+        assert "first_name" in user_data
 
 
 # ==================== PRUEBAS DE INTEGRACIÓN ====================
@@ -125,8 +133,7 @@ class TestUserProfileAPIIntegration:
         # Assert
         assert response.status_code == 200
         data = response.json()
-        assert data["success"] is True
-        assert data["user"]["email"] == test_user.email
+        assert data["email"] == test_user.email
 
     def test_update_profile_endpoint(self, user_client):
         """
@@ -145,7 +152,8 @@ class TestUserProfileAPIIntegration:
         # Assert
         assert response.status_code == 200
         data = response.json()
-        assert data["success"] is True
+        assert data["first_name"] == "Updated"
+        assert data["last_name"] == "User"
 
 
 # ==================== PRUEBAS FUNCIONALES ====================
@@ -156,9 +164,8 @@ class TestUserProfileFunctional:
     Descripción: Clase que agrupa las pruebas funcionales end-to-end de perfil.
     """
 
-    @patch('app.api.v1.user_profile.service.S3Service')
     def test_complete_profile_management_flow(
-        self, mock_s3_service, db, test_user
+        self, db, test_user
     ):
         """
         Autor: Luis Flores
@@ -186,16 +193,25 @@ class TestUserProfileFunctional:
             "success": True,
             "file_url": "https://s3.amazonaws.com/test/new_profile.jpg"
         }
-        mock_s3_service.return_value = mock_s3_instance
+        mock_s3_instance.delete_profile_img.return_value = {"success": True}
 
-        image_result = user_profile_service.update_profile_image(
-            db=db, cognito_sub=test_user.cognito_sub, image_content=b"new_image_content"
-        )
-        assert image_result["success"] is True
+        # Patch the s3_service instance
+        original_s3 = user_profile_service.s3_service
+        user_profile_service.s3_service = mock_s3_instance
+
+        try:
+            image_result = user_profile_service.update_profile_image(
+                db=db, cognito_sub=test_user.cognito_sub, image_content=b"new_image_content"
+            )
+            assert image_result["success"] is True
+        finally:
+            # Restore original s3_service
+            user_profile_service.s3_service = original_s3
 
         # Paso 4: Obtener perfil básico
         basic = user_profile_service.get_basic_profile(db=db, cognito_sub=test_user.cognito_sub)
-        assert basic["first_name"] == "Juan"
+        assert basic["success"] is True
+        assert basic["user"]["first_name"] == "Juan"
 
         # Paso 5: Desactivar cuenta
         delete_result = user_profile_service.soft_delete_account(db=db, cognito_sub=test_user.cognito_sub)
