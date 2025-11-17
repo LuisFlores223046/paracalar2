@@ -273,18 +273,40 @@ class TestLoyaltyServiceUnit:
             test_user (User): Usuario de prueba.
             test_user_loyalty (UserLoyalty): Lealtad del usuario.
         """
-        # Arrange - Crear historial
+        # Arrange - Crear orden para el historial
         from datetime import date
+        from app.models.order import Order
+        from app.models.enum import OrderStatus
+        from decimal import Decimal
+
+        order = Order(
+            user_id=test_user.user_id,
+            address_id=1,
+            payment_id=1,
+            order_status=OrderStatus.PAID,
+            subtotal=Decimal('100.00'),
+            shipping_cost=Decimal('10.00'),
+            discount_amount=Decimal('0.00'),
+            total_amount=Decimal('110.00'),
+            points_earned=50
+        )
+        db.add(order)
+        db.commit()
+
+        # Crear historial de puntos ganados
         history1 = PointHistory(
             loyalty_id=test_user_loyalty.loyalty_id,
+            order_id=order.order_id,
             points_change=50,
-            event_type="PURCHASE",
+            event_type="earned",
             event_date=date.today()
         )
+        # Crear historial de puntos expirados (sin order_id)
         history2 = PointHistory(
             loyalty_id=test_user_loyalty.loyalty_id,
+            order_id=None,
             points_change=-20,
-            event_type="USED",
+            event_type="expired",
             event_date=date.today()
         )
         db.add_all([history1, history2])
