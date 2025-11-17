@@ -363,7 +363,7 @@ class TestLoyaltyServiceUnit:
         # Assert
         assert len(coupon_codes) == 1  # Tier 1 = 1 cupón
         coupon = db.query(Coupon).filter(Coupon.coupon_code == coupon_codes[0]).first()
-        assert coupon.discount_percentage == 5.0
+        assert coupon.discount_value == 5.0
 
 
 # ==================== PRUEBAS DE INTEGRACIÓN ====================
@@ -393,8 +393,8 @@ class TestLoyaltyAPIIntegration:
         # Assert
         assert response.status_code == 200
         data = response.json()
-        assert "loyalty" in data
-        assert data["loyalty"]["user_id"] == test_user.user_id
+        assert "loyalty_id" in data or "user_id" in data
+        assert data["user_id"] == test_user.user_id
 
     def test_get_tiers_endpoint(
         self, client, db, test_loyalty_tiers
@@ -440,8 +440,11 @@ class TestLoyaltyFunctional:
         # Paso 1: Nuevo usuario obtiene su estado (auto-creación)
         status = loyalty_service.get_user_loyalty_status(db=db, cognito_sub=test_user.cognito_sub)
         loyalty = status["loyalty"]
-        assert loyalty.loyalty_tier.tier_level == 1
-        assert loyalty.total_points == 0
+        assert loyalty["tier_level"] == 1
+        assert loyalty["total_points"] == 0
+
+        # Obtener objeto UserLoyalty para usar en add_points
+        user_loyalty = db.query(UserLoyalty).filter(UserLoyalty.user_id == test_user.user_id).first()
 
         # Paso 2: Usuario hace compra y gana puntos (tier 1 -> 2)
         order1 = Order(
@@ -458,10 +461,10 @@ class TestLoyaltyFunctional:
         db.add(order1)
         db.commit()
 
-        loyalty_service.add_points(db=db, loyalty_id=loyalty.loyalty_id, points=520, order_id=order1.order_id)
-        db.refresh(loyalty)
-        assert loyalty.total_points == 520
-        assert loyalty.loyalty_tier.tier_level == 2  # Subió a tier 2
+        loyalty_service.add_points(db=db, loyalty_id=user_loyalty.loyalty_id, points=520, order_id=order1.order_id)
+        db.refresh(user_loyalty)
+        assert user_loyalty.total_points == 520
+        assert user_loyalty.loyalty_tier.tier_level == 2  # Subió a tier 2
 
         # Paso 3: Generar cupones mensuales (tier 2 = 3 cupones al 10%)
         coupons = loyalty_service.generate_monthly_coupons_for_user(db=db, user_id=test_user.user_id)
@@ -482,17 +485,17 @@ class TestLoyaltyFunctional:
         db.add(order2)
         db.commit()
 
-        loyalty_service.add_points(db=db, loyalty_id=loyalty.loyalty_id, points=1020, order_id=order2.order_id)
-        db.refresh(loyalty)
-        assert loyalty.loyalty_tier.tier_level == 3  # Subió a tier 3
-        assert loyalty.total_points == 1540
+        loyalty_service.add_points(db=db, loyalty_id=user_loyalty.loyalty_id, points=1020, order_id=order2.order_id)
+        db.refresh(user_loyalty)
+        assert user_loyalty.loyalty_tier.tier_level == 3  # Subió a tier 3
+        assert user_loyalty.total_points == 1540
 
         # Paso 5: Obtener historial de puntos
         history = loyalty_service.get_point_history(db=db, cognito_sub=test_user.cognito_sub, limit=50)
         assert history["total"] >= 2
 
         # Paso 6: Expirar puntos
-        loyalty.points_expiration_date = datetime.now(UTC) - timedelta(days=1)
+        user_loyalty.points_expiration_date = datetime.now(UTC) - timedelta(days=1)
         db.commit()
 
         expire_result = loyalty_service.expire_points_for_user(db=db, cognito_sub=test_user.cognito_sub)
