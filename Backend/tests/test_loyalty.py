@@ -99,8 +99,8 @@ class TestLoyaltyServiceUnit:
         # Assert
         assert "loyalty" in result
         loyalty = result["loyalty"]
-        assert loyalty.user_id == test_user.user_id
-        assert loyalty.total_points >= 0
+        assert loyalty["user_id"] == test_user.user_id
+        assert loyalty["total_points"] >= 0
 
     def test_get_user_loyalty_status_new_user(
         self, db: Session, test_user: User, test_loyalty_tiers
@@ -119,8 +119,8 @@ class TestLoyaltyServiceUnit:
         # Assert
         assert "loyalty" in result
         loyalty = result["loyalty"]
-        assert loyalty.total_points == 0
-        assert loyalty.loyalty_tier.tier_level == 1
+        assert loyalty["total_points"] == 0
+        assert loyalty["loyalty_tier"]["tier_level"] == 1
 
     def test_add_points(
         self, db: Session, test_user_loyalty: UserLoyalty,
@@ -155,7 +155,7 @@ class TestLoyaltyServiceUnit:
 
         # Act
         result = loyalty_service.add_points(
-            db=db, loyalty_id=test_user_loyalty.loyalty_id, points_to_add=points_to_add, order_id=order.order_id
+            db=db, loyalty_id=test_user_loyalty.loyalty_id, points=points_to_add, order_id=order.order_id
         )
 
         # Assert
@@ -203,7 +203,7 @@ class TestLoyaltyServiceUnit:
 
         # Act - Agregar 100 puntos (450 + 100 = 550, suficiente para tier 2)
         result = loyalty_service.add_points(
-            db=db, loyalty_id=test_user_loyalty.loyalty_id, points_to_add=100, order_id=order.order_id
+            db=db, loyalty_id=test_user_loyalty.loyalty_id, points=100, order_id=order.order_id
         )
 
         # Assert
@@ -274,15 +274,18 @@ class TestLoyaltyServiceUnit:
             test_user_loyalty (UserLoyalty): Lealtad del usuario.
         """
         # Arrange - Crear historial
+        from datetime import date
         history1 = PointHistory(
             loyalty_id=test_user_loyalty.loyalty_id,
             points_change=50,
-            event_type="PURCHASE"
+            event_type="PURCHASE",
+            event_date=date.today()
         )
         history2 = PointHistory(
             loyalty_id=test_user_loyalty.loyalty_id,
             points_change=-20,
-            event_type="USED"
+            event_type="USED",
+            event_date=date.today()
         )
         db.add_all([history1, history2])
         db.commit()
@@ -337,7 +340,7 @@ class TestLoyaltyServiceUnit:
 
         # Assert
         assert len(coupon_codes) == 1  # Tier 1 = 1 cupón
-        coupon = db.query(Coupon).filter(Coupon.code == coupon_codes[0]).first()
+        coupon = db.query(Coupon).filter(Coupon.coupon_code == coupon_codes[0]).first()
         assert coupon.discount_percentage == 5.0
 
 
@@ -433,7 +436,7 @@ class TestLoyaltyFunctional:
         db.add(order1)
         db.commit()
 
-        loyalty_service.add_points(db=db, loyalty_id=loyalty.loyalty_id, points_to_add=520, order_id=order1.order_id)
+        loyalty_service.add_points(db=db, loyalty_id=loyalty.loyalty_id, points=520, order_id=order1.order_id)
         db.refresh(loyalty)
         assert loyalty.total_points == 520
         assert loyalty.loyalty_tier.tier_level == 2  # Subió a tier 2
@@ -457,7 +460,7 @@ class TestLoyaltyFunctional:
         db.add(order2)
         db.commit()
 
-        loyalty_service.add_points(db=db, loyalty_id=loyalty.loyalty_id, points_to_add=1020, order_id=order2.order_id)
+        loyalty_service.add_points(db=db, loyalty_id=loyalty.loyalty_id, points=1020, order_id=order2.order_id)
         db.refresh(loyalty)
         assert loyalty.loyalty_tier.tier_level == 3  # Subió a tier 3
         assert loyalty.total_points == 1540

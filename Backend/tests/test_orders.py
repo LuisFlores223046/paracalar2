@@ -102,7 +102,7 @@ class TestOrderServiceUnit:
             test_cart_with_items (ShoppingCart): Carrito con items.
         """
         # Arrange
-        service = OrderService()
+        service = order_service
         subtotal = Decimal('1799.98')
         shipping_cost = Decimal('150.00')
         discount_amount = Decimal('0.00')
@@ -142,7 +142,7 @@ class TestOrderServiceUnit:
             test_payment_method (PaymentMethod): Método de pago de prueba.
         """
         # Arrange
-        service = OrderService()
+        service = order_service
         # Crear carrito vacío
         cart = ShoppingCart(user_id=test_user.user_id)
         db.add(cart)
@@ -179,7 +179,7 @@ class TestOrderServiceUnit:
             test_cart_with_items (ShoppingCart): Carrito con items.
         """
         # Arrange
-        service = OrderService()
+        service = order_service
         # Crear orden primero
         result = service.create_order_from_cart(
             db=db,
@@ -216,7 +216,7 @@ class TestOrderServiceUnit:
             test_cart_with_items (ShoppingCart): Carrito con items.
         """
         # Arrange
-        service = OrderService()
+        service = order_service
         result = service.create_order_from_cart(
             db=db,
             user_id=test_user.user_id,
@@ -252,7 +252,7 @@ class TestOrderServiceUnit:
             test_cart_with_items (ShoppingCart): Carrito con items.
         """
         # Arrange
-        service = OrderService()
+        service = order_service
         service.create_order_from_cart(
             db=db,
             user_id=test_user.user_id,
@@ -297,7 +297,7 @@ class TestOrderAPIIntegration:
             test_cart_with_items (ShoppingCart): Carrito con items.
         """
         # Arrange - Crear orden
-        service = OrderService()
+        service = order_service
         service.create_order_from_cart(
             db=db,
             user_id=test_user.user_id,
@@ -333,7 +333,7 @@ class TestOrderAPIIntegration:
             test_cart_with_items (ShoppingCart): Carrito con items.
         """
         # Arrange
-        service = OrderService()
+        service = order_service
         result = service.create_order_from_cart(
             db=db,
             user_id=test_user.user_id,
@@ -392,7 +392,7 @@ class TestOrderFunctional:
         db.commit()
 
         # Paso 2: Crear orden
-        service = OrderService()
+        service = order_service
         subtotal = test_product.price * Decimal('3')
         shipping_cost = Decimal('150.00')
         total_amount = subtotal + shipping_cost

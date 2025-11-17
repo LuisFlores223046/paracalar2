@@ -48,8 +48,8 @@ class TestUserProfileServiceUnit:
 
         # Assert
         assert result["success"] is True
-        assert result["user"].first_name == "Updated"
-        assert result["user"].last_name == "Name"
+        assert result["user"]["first_name"] == "Updated"
+        assert result["user"]["last_name"] == "Name"
 
     @patch('app.api.v1.user_profile.service.S3Service')
     def test_update_profile_image(
@@ -178,7 +178,7 @@ class TestUserProfileFunctional:
             date_of_birth=date(1990, 1, 1)
         )
         assert update_result["success"] is True
-        assert update_result["user"].first_name == "Juan"
+        assert update_result["user"]["first_name"] == "Juan"
 
         # Paso 3: Actualizar imagen de perfil
         mock_s3_instance = Mock()
