@@ -106,6 +106,10 @@ class TestPaymentMethodServiceUnit:
             test_user (User): Usuario de prueba.
         """
         # Arrange
+        # Set stripe_customer_id for the test user
+        test_user.stripe_customer_id = "cus_test_123"
+        db.commit()
+
         mock_stripe_service.get_payment_method.return_value = {
             "success": True,
             "payment_method": {
