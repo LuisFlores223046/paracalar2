@@ -6,7 +6,7 @@
 import pytest
 from unittest.mock import patch, Mock
 from sqlalchemy.orm import Session
-from app.api.v1.payment_method.service import PaymentMethodService
+from app.api.v1.payment_method.service import payment_method_service
 from app.api.v1.payment_method import schemas
 from app.models.payment_method import PaymentMethod
 from app.models.user import User
@@ -33,8 +33,8 @@ class TestPaymentMethodServiceUnit:
             test_payment_method (PaymentMethod): Método de pago de prueba.
         """
         # Act
-        result = PaymentMethodService.get_user_payment_methods(
-            db, test_user.cognito_sub
+        result = payment_method_service.get_user_payment_methods(
+            db=db, cognito_sub=test_user.cognito_sub
         )
 
         # Assert
@@ -54,8 +54,8 @@ class TestPaymentMethodServiceUnit:
             test_payment_method (PaymentMethod): Método de pago de prueba.
         """
         # Act
-        result = PaymentMethodService.get_payment_method_by_id(
-            db, test_user.cognito_sub, test_payment_method.payment_id
+        result = payment_method_service.get_payment_method_by_id(
+            db=db, cognito_sub=test_user.cognito_sub, payment_id=test_payment_method.payment_id
         )
 
         # Assert
@@ -86,7 +86,7 @@ class TestPaymentMethodServiceUnit:
         }
 
         # Act
-        result = PaymentMethodService.create_setup_intent(db, test_user.cognito_sub)
+        result = payment_method_service.create_setup_intent(db=db, cognito_sub=test_user.cognito_sub)
 
         # Assert
         assert result["success"] is True
@@ -121,8 +121,8 @@ class TestPaymentMethodServiceUnit:
         }
 
         # Act
-        result = PaymentMethodService.save_payment_method_from_setup(
-            db, test_user.cognito_sub, "pm_test_123", is_default=True
+        result = payment_method_service.save_payment_method_from_setup(
+            db=db, cognito_sub=test_user.cognito_sub, payment_method_id="pm_test_123", is_default=True
         )
 
         # Assert
@@ -150,7 +150,7 @@ class TestPaymentMethodServiceUnit:
         }
 
         # Act
-        result = PaymentMethodService.delete_payment_method(
+        result = payment_method_service.delete_payment_method(
             db, test_user.cognito_sub, test_payment_method.payment_id
         )
 
@@ -192,7 +192,7 @@ class TestPaymentMethodServiceUnit:
         db.commit()
 
         # Act
-        result = PaymentMethodService.set_default_payment_method(
+        result = payment_method_service.set_default_payment_method(
             db, test_user.cognito_sub, pm2.payment_id
         )
 
@@ -298,7 +298,7 @@ class TestPaymentMethodFunctional:
             "setup_intent_id": "seti_123"
         }
 
-        setup_result = PaymentMethodService.create_setup_intent(
+        setup_result = payment_method_service.create_setup_intent(
             db, test_user.cognito_sub
         )
         assert setup_result["success"] is True
@@ -318,7 +318,7 @@ class TestPaymentMethodFunctional:
             }
         }
 
-        save_result1 = PaymentMethodService.save_payment_method_from_setup(
+        save_result1 = payment_method_service.save_payment_method_from_setup(
             db, test_user.cognito_sub, "pm_1", is_default=True
         )
         assert save_result1["success"] is True
@@ -339,20 +339,20 @@ class TestPaymentMethodFunctional:
             }
         }
 
-        save_result2 = PaymentMethodService.save_payment_method_from_setup(
+        save_result2 = payment_method_service.save_payment_method_from_setup(
             db, test_user.cognito_sub, "pm_2", is_default=False
         )
         assert save_result2["success"] is True
         pm2 = save_result2["payment_method"]
 
         # Paso 4: Listar tarjetas
-        list_result = PaymentMethodService.get_user_payment_methods(
+        list_result = payment_method_service.get_user_payment_methods(
             db, test_user.cognito_sub
         )
         assert list_result["total"] == 2
 
         # Paso 5: Cambiar tarjeta por defecto
-        default_result = PaymentMethodService.set_default_payment_method(
+        default_result = payment_method_service.set_default_payment_method(
             db, test_user.cognito_sub, pm2.payment_id
         )
         assert default_result["success"] is True
@@ -362,13 +362,13 @@ class TestPaymentMethodFunctional:
             "success": True
         }
 
-        delete_result = PaymentMethodService.delete_payment_method(
+        delete_result = payment_method_service.delete_payment_method(
             db, test_user.cognito_sub, pm1.payment_id
         )
         assert delete_result["success"] is True
 
         # Paso 7: Verificar que solo queda una tarjeta
-        final_list = PaymentMethodService.get_user_payment_methods(
+        final_list = payment_method_service.get_user_payment_methods(
             db, test_user.cognito_sub
         )
         assert final_list["total"] == 1

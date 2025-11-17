@@ -6,8 +6,8 @@
 import pytest
 from sqlalchemy.orm import Session
 from decimal import Decimal
-from datetime import datetime, timedelta, UTC
-from app.api.v1.loyalty.service import LoyaltyService
+from datetime import datetime, timedelta, UTC, date
+from app.api.v1.loyalty.service import loyalty_service
 from app.api.v1.loyalty import schemas
 from app.models.user_loyalty import UserLoyalty
 from app.models.loyalty_tier import LoyaltyTier
@@ -55,12 +55,16 @@ def test_loyalty_tiers(db: Session):
 
 
 @pytest.fixture
-def test_user_loyalty(db: Session, test_user: User):
+def test_user_loyalty(db: Session, test_user: User, test_loyalty_tiers):
     """Fixture que crea registro de lealtad para el usuario"""
+    # Get tier 1 (first tier)
+    tier_1 = test_loyalty_tiers[0]
     loyalty = UserLoyalty(
         user_id=test_user.user_id,
+        tier_id=tier_1.tier_id,
         total_points=100,
-        tier_level=1
+        tier_achieved_date=date.today(),
+        last_points_update=date.today()
     )
     db.add(loyalty)
     db.commit()
@@ -90,7 +94,7 @@ class TestLoyaltyServiceUnit:
             test_loyalty_tiers: Tiers de lealtad.
         """
         # Act
-        result = LoyaltyService.get_user_loyalty_status(db, test_user.cognito_sub)
+        result = loyalty_service.get_user_loyalty_status(db=db, cognito_sub=test_user.cognito_sub)
 
         # Assert
         assert "loyalty" in result
@@ -110,13 +114,13 @@ class TestLoyaltyServiceUnit:
             test_loyalty_tiers: Tiers de lealtad.
         """
         # Act
-        result = LoyaltyService.get_user_loyalty_status(db, test_user.cognito_sub)
+        result = loyalty_service.get_user_loyalty_status(db=db, cognito_sub=test_user.cognito_sub)
 
         # Assert
         assert "loyalty" in result
         loyalty = result["loyalty"]
         assert loyalty.total_points == 0
-        assert loyalty.tier_level == 1
+        assert loyalty.loyalty_tier.tier_level == 1
 
     def test_add_points(
         self, db: Session, test_user_loyalty: UserLoyalty,
@@ -150,8 +154,8 @@ class TestLoyaltyServiceUnit:
         db.commit()
 
         # Act
-        result = LoyaltyService.add_points(
-            db, test_user_loyalty.loyalty_id, points_to_add, order.order_id
+        result = loyalty_service.add_points(
+            db=db, loyalty_id=test_user_loyalty.loyalty_id, points_to_add=points_to_add, order_id=order.order_id
         )
 
         # Assert
@@ -198,13 +202,13 @@ class TestLoyaltyServiceUnit:
         db.commit()
 
         # Act - Agregar 100 puntos (450 + 100 = 550, suficiente para tier 2)
-        result = LoyaltyService.add_points(
-            db, test_user_loyalty.loyalty_id, 100, order.order_id
+        result = loyalty_service.add_points(
+            db=db, loyalty_id=test_user_loyalty.loyalty_id, points_to_add=100, order_id=order.order_id
         )
 
         # Assert
         db.refresh(test_user_loyalty)
-        assert test_user_loyalty.tier_level == 2
+        assert test_user_loyalty.loyalty_tier.tier_level == 2
         assert test_user_loyalty.total_points == 550
 
     def test_expire_points_for_user(
@@ -221,13 +225,14 @@ class TestLoyaltyServiceUnit:
             test_loyalty_tiers: Tiers de lealtad.
         """
         # Arrange - Usuario con puntos y fecha de expiración pasada
+        tier_2 = test_loyalty_tiers[1]
         test_user_loyalty.total_points = 200
-        test_user_loyalty.tier_level = 2
+        test_user_loyalty.tier_id = tier_2.tier_id
         test_user_loyalty.points_expiration_date = datetime.now(UTC) - timedelta(days=1)
         db.commit()
 
         # Act
-        result = LoyaltyService.expire_points_for_user(db, test_user.cognito_sub)
+        result = loyalty_service.expire_points_for_user(db=db, cognito_sub=test_user.cognito_sub)
 
         # Assert
         assert result["points_expired"] == 200
@@ -251,7 +256,7 @@ class TestLoyaltyServiceUnit:
             test_loyalty_tiers: Tiers de lealtad.
         """
         # Act
-        result = LoyaltyService.get_all_tiers(db)
+        result = loyalty_service.get_all_tiers(db=db)
 
         # Assert
         assert result["success"] is True
@@ -283,8 +288,8 @@ class TestLoyaltyServiceUnit:
         db.commit()
 
         # Act
-        result = LoyaltyService.get_point_history(
-            db, test_user.cognito_sub, limit=10
+        result = loyalty_service.get_point_history(
+            db=db, cognito_sub=test_user.cognito_sub, limit=10
         )
 
         # Assert
@@ -298,8 +303,8 @@ class TestLoyaltyServiceUnit:
         Descripción: Prueba unitaria para generar código de cupón aleatorio.
         """
         # Act
-        code1 = LoyaltyService.generate_random_coupon_code(length=6)
-        code2 = LoyaltyService.generate_random_coupon_code(length=8)
+        code1 = loyalty_service.generate_random_coupon_code(length=6)
+        code2 = loyalty_service.generate_random_coupon_code(length=8)
 
         # Assert
         assert len(code1) == 6
@@ -320,13 +325,14 @@ class TestLoyaltyServiceUnit:
             test_user_loyalty (UserLoyalty): Lealtad del usuario (tier 1).
             test_loyalty_tiers: Tiers de lealtad.
         """
-        # Arrange - Usuario en tier 1
-        test_user_loyalty.tier_level = 1
+        # Arrange - Usuario en tier 1 (already is tier 1 from fixture)
+        tier_1 = test_loyalty_tiers[0]
+        test_user_loyalty.tier_id = tier_1.tier_id
         db.commit()
 
         # Act
-        coupon_codes = LoyaltyService.generate_monthly_coupons_for_user(
-            db, test_user.user_id
+        coupon_codes = loyalty_service.generate_monthly_coupons_for_user(
+            db=db, user_id=test_user.user_id
         )
 
         # Assert
@@ -407,9 +413,9 @@ class TestLoyaltyFunctional:
             test_loyalty_tiers: Tiers de lealtad.
         """
         # Paso 1: Nuevo usuario obtiene su estado (auto-creación)
-        status = LoyaltyService.get_user_loyalty_status(db, test_user.cognito_sub)
+        status = loyalty_service.get_user_loyalty_status(db=db, cognito_sub=test_user.cognito_sub)
         loyalty = status["loyalty"]
-        assert loyalty.tier_level == 1
+        assert loyalty.loyalty_tier.tier_level == 1
         assert loyalty.total_points == 0
 
         # Paso 2: Usuario hace compra y gana puntos (tier 1 -> 2)
@@ -427,13 +433,13 @@ class TestLoyaltyFunctional:
         db.add(order1)
         db.commit()
 
-        LoyaltyService.add_points(db, loyalty.loyalty_id, 520, order1.order_id)
+        loyalty_service.add_points(db=db, loyalty_id=loyalty.loyalty_id, points_to_add=520, order_id=order1.order_id)
         db.refresh(loyalty)
         assert loyalty.total_points == 520
-        assert loyalty.tier_level == 2  # Subió a tier 2
+        assert loyalty.loyalty_tier.tier_level == 2  # Subió a tier 2
 
         # Paso 3: Generar cupones mensuales (tier 2 = 3 cupones al 10%)
-        coupons = LoyaltyService.generate_monthly_coupons_for_user(db, test_user.user_id)
+        coupons = loyalty_service.generate_monthly_coupons_for_user(db=db, user_id=test_user.user_id)
         assert len(coupons) == 3
 
         # Paso 4: Usuario sigue comprando (tier 2 -> 3)
@@ -451,20 +457,20 @@ class TestLoyaltyFunctional:
         db.add(order2)
         db.commit()
 
-        LoyaltyService.add_points(db, loyalty.loyalty_id, 1020, order2.order_id)
+        loyalty_service.add_points(db=db, loyalty_id=loyalty.loyalty_id, points_to_add=1020, order_id=order2.order_id)
         db.refresh(loyalty)
-        assert loyalty.tier_level == 3  # Subió a tier 3
+        assert loyalty.loyalty_tier.tier_level == 3  # Subió a tier 3
         assert loyalty.total_points == 1540
 
         # Paso 5: Obtener historial de puntos
-        history = LoyaltyService.get_point_history(db, test_user.cognito_sub, limit=50)
+        history = loyalty_service.get_point_history(db=db, cognito_sub=test_user.cognito_sub, limit=50)
         assert history["total"] >= 2
 
         # Paso 6: Expirar puntos
         loyalty.points_expiration_date = datetime.now(UTC) - timedelta(days=1)
         db.commit()
 
-        expire_result = LoyaltyService.expire_points_for_user(db, test_user.cognito_sub)
+        expire_result = loyalty_service.expire_points_for_user(db=db, cognito_sub=test_user.cognito_sub)
         assert expire_result["points_expired"] == 1540
         assert expire_result["new_tier_level"] == 1
 

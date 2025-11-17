@@ -5,7 +5,7 @@
 
 import pytest
 from sqlalchemy.orm import Session
-from app.api.v1.address.service import AddressService
+from app.api.v1.address.service import address_service
 from app.api.v1.address import schemas
 from app.models.address import Address
 from app.models.user import User
@@ -28,7 +28,7 @@ class TestAddressServiceUnit:
             test_user (User): Usuario de prueba.
         """
         # Arrange
-        address_data = schemas.AddressCreate(
+        address_data = schemas.CreateAddressRequest(
             address_name="Oficina",
             address_line1="Av. Principal 456",
             address_line2="Piso 3",
@@ -42,7 +42,7 @@ class TestAddressServiceUnit:
         )
 
         # Act
-        address = AddressService.create_address(db, test_user.user_id, address_data)
+        address = address_service.create_address(db=db, user_id=test_user.user_id, address_data=address_data)
 
         # Assert
         assert address.address_id is not None
@@ -87,7 +87,7 @@ class TestAddressServiceUnit:
         db.commit()
 
         # Act
-        addresses = AddressService.get_user_addresses(db, test_user.user_id)
+        addresses = address_service.get_user_addresses(db=db, user_id=test_user.user_id)
 
         # Assert
         assert len(addresses) >= 2
@@ -117,14 +117,14 @@ class TestAddressServiceUnit:
         db.commit()
         db.refresh(address)
 
-        update_data = schemas.AddressUpdate(
+        update_data = schemas.UpdateAddressRequest(
             address_name="Actualizada",
             city="Chihuahua"
         )
 
         # Act
-        updated = AddressService.update_address(
-            db, address.address_id, test_user.user_id, update_data
+        updated = address_service.update_address(
+            db=db, address_id=address.address_id, user_id=test_user.user_id, address_data=update_data
         )
 
         # Assert
@@ -157,7 +157,7 @@ class TestAddressServiceUnit:
         address_id = address.address_id
 
         # Act
-        result = AddressService.delete_address(db, address_id, test_user.user_id)
+        result = address_service.delete_address(db=db, address_id=address_id, user_id=test_user.user_id)
 
         # Assert
         assert result is True
@@ -201,7 +201,7 @@ class TestAddressServiceUnit:
         db.commit()
 
         # Act
-        AddressService.set_default_address(db, address2.address_id, test_user.user_id)
+        address_service.set_default_address(db=db, address_id=address2.address_id, user_id=test_user.user_id)
 
         # Assert
         db.refresh(address1)
@@ -300,7 +300,7 @@ class TestAddressFunctional:
             test_user (User): Usuario de prueba.
         """
         # Paso 1: Crear primera dirección
-        address1_data = schemas.AddressCreate(
+        address1_data = schemas.CreateAddressRequest(
             address_name="Casa",
             address_line1="Calle 1",
             country="México",
@@ -311,11 +311,11 @@ class TestAddressFunctional:
             phone_number="1234567890",
             is_default=True
         )
-        address1 = AddressService.create_address(db, test_user.user_id, address1_data)
+        address1 = address_service.create_address(db=db, user_id=test_user.user_id, address_data=address1_data)
         assert address1.is_default is True
 
         # Paso 2: Crear segunda dirección
-        address2_data = schemas.AddressCreate(
+        address2_data = schemas.CreateAddressRequest(
             address_name="Trabajo",
             address_line1="Calle 2",
             country="México",
@@ -326,29 +326,29 @@ class TestAddressFunctional:
             phone_number="9876543210",
             is_default=False
         )
-        address2 = AddressService.create_address(db, test_user.user_id, address2_data)
+        address2 = address_service.create_address(db=db, user_id=test_user.user_id, address_data=address2_data)
 
         # Paso 3: Listar direcciones
-        addresses = AddressService.get_user_addresses(db, test_user.user_id)
+        addresses = address_service.get_user_addresses(db=db, user_id=test_user.user_id)
         assert len(addresses) == 2
 
         # Paso 4: Actualizar segunda dirección
-        update_data = schemas.AddressUpdate(address_name="Oficina")
-        updated = AddressService.update_address(
-            db, address2.address_id, test_user.user_id, update_data
+        update_data = schemas.UpdateAddressRequest(address_name="Oficina")
+        updated = address_service.update_address(
+            db=db, address_id=address2.address_id, user_id=test_user.user_id, address_data=update_data
         )
         assert updated.address_name == "Oficina"
 
         # Paso 5: Cambiar dirección por defecto
-        AddressService.set_default_address(db, address2.address_id, test_user.user_id)
+        address_service.set_default_address(db=db, address_id=address2.address_id, user_id=test_user.user_id)
         db.refresh(address1)
         db.refresh(address2)
         assert address2.is_default is True
         assert address1.is_default is False
 
         # Paso 6: Eliminar primera dirección
-        AddressService.delete_address(db, address1.address_id, test_user.user_id)
-        remaining = AddressService.get_user_addresses(db, test_user.user_id)
+        address_service.delete_address(db=db, address_id=address1.address_id, user_id=test_user.user_id)
+        remaining = address_service.get_user_addresses(db=db, user_id=test_user.user_id)
         assert len(remaining) == 1
 
         print("✅ Prueba funcional de gestión de direcciones completada")

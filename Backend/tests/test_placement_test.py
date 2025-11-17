@@ -283,10 +283,15 @@ class TestPlacementTestFunctional:
         assert "attributes" in result
 
         # Paso 4: Simular guardado de FitnessProfile
+        from datetime import date
+        # Merge recommended_plan into attributes
+        profile_attributes = result["attributes"].copy()
+        profile_attributes["recommended_plan"] = result["recommended_plan"]
+
         profile = FitnessProfile(
             user_id=test_user.user_id,
-            recommended_plan=result["recommended_plan"],
-            attributes=result["attributes"]
+            test_date=date.today(),
+            attributes=profile_attributes
         )
         db.add(profile)
         db.commit()
@@ -297,7 +302,7 @@ class TestPlacementTestFunctional:
         ).first()
 
         assert saved_profile is not None
-        assert saved_profile.recommended_plan == "BeStrong"
+        assert saved_profile.attributes["recommended_plan"] == "BeStrong"
         assert saved_profile.attributes["age"] == 28
         assert saved_profile.attributes["gender"] == "M"
 

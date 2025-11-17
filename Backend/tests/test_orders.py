@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy.orm import Session
 from decimal import Decimal
 from datetime import datetime
-from app.api.v1.orders.service import OrderService
+from app.api.v1.orders.service import order_service
 from app.api.v1.orders import schemas
 from app.models.order import Order
 from app.models.order_item import OrderItem
