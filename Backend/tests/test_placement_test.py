@@ -31,6 +31,12 @@ class TestPlacementTestServiceUnit:
             "gender": "M",
             "exercise_freq": 5,
             "activity_type": "weightlifting",
+            "activity_intensity": "high",
+            "diet_type": "high_protein",
+            "diet_special": "none",
+            "supplements": "yes",
+            "goal_declared": "muscle_gain",
+            "sleep_hours": 7,
             "extra_field": "should be removed",
             "another_extra": 123
         }
