@@ -22,7 +22,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter()
 
 security = HTTPBearer()
 

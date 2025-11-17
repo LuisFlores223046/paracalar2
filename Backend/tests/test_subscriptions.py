@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from decimal import Decimal
 from datetime import datetime, timedelta, UTC
 from unittest.mock import patch, Mock
-from app.api.v1.subscriptions.service import SubscriptionService
+from app.api.v1.subscriptions.service import subscription_service
 from app.api.v1.subscriptions import schemas
 from app.models.subscription import Subscription
 from app.models.fitness_profile import FitnessProfile
@@ -24,10 +24,12 @@ from app.models.enum import SubscriptionStatus, PaymentType, Gender
 @pytest.fixture
 def test_fitness_profile(db: Session, test_user: User):
     """Fixture que crea un perfil fitness de prueba"""
+    from datetime import date
     profile = FitnessProfile(
         user_id=test_user.user_id,
-        recommended_plan="BeStrong",
+        test_date=date.today(),
         attributes={
+            "recommended_plan": "BeStrong",
             "age": 25,
             "gender": "M",
             "activity_type": "weightlifting",
@@ -95,7 +97,7 @@ class TestSubscriptionServiceUnit:
         }
 
         # Act
-        result = SubscriptionService.create_subscription(
+        result = subscription_service.create_subscription(
             db, test_user.user_id, test_payment_method.payment_id
         )
 
@@ -116,7 +118,7 @@ class TestSubscriptionServiceUnit:
             test_payment_method (PaymentMethod): Método de pago de prueba.
         """
         # Act
-        result = SubscriptionService.create_subscription(
+        result = subscription_service.create_subscription(
             db, test_user.user_id, test_payment_method.payment_id
         )
 
@@ -136,7 +138,7 @@ class TestSubscriptionServiceUnit:
             test_active_subscription (Subscription): Suscripción activa.
         """
         # Act
-        result = SubscriptionService.get_user_subscription(db, test_user.user_id)
+        result = subscription_service.get_user_subscription(db, test_user.user_id)
 
         # Assert
         assert result["has_subscription"] is True
@@ -155,7 +157,7 @@ class TestSubscriptionServiceUnit:
             test_active_subscription (Subscription): Suscripción activa.
         """
         # Act
-        result = SubscriptionService.pause_subscription(db, test_user.user_id)
+        result = subscription_service.pause_subscription(db, test_user.user_id)
 
         # Assert
         assert result["success"] is True
@@ -177,7 +179,7 @@ class TestSubscriptionServiceUnit:
         db.commit()
 
         # Act
-        result = SubscriptionService.resume_subscription(db, test_user.user_id)
+        result = subscription_service.resume_subscription(db, test_user.user_id)
 
         # Assert
         assert result["success"] is True
@@ -195,7 +197,7 @@ class TestSubscriptionServiceUnit:
             test_active_subscription (Subscription): Suscripción activa.
         """
         # Act
-        result = SubscriptionService.cancel_subscription(db, test_user.user_id)
+        result = subscription_service.cancel_subscription(db, test_user.user_id)
 
         # Assert
         assert result["success"] is True
@@ -225,7 +227,7 @@ class TestSubscriptionServiceUnit:
         db.commit()
 
         # Act
-        result = SubscriptionService.update_payment_method(
+        result = subscription_service.update_payment_method(
             db, test_user.user_id, new_payment.payment_id
         )
 
@@ -263,7 +265,7 @@ class TestSubscriptionServiceUnit:
         db.commit()
 
         # Act
-        selected_products = SubscriptionService._select_products_for_subscription(
+        selected_products = subscription_service._select_products_for_subscription(
             db, test_fitness_profile
         )
 
@@ -359,23 +361,23 @@ class TestSubscriptionFunctional:
             "points_earned": 99
         }
 
-        result = SubscriptionService.create_subscription(
+        result = subscription_service.create_subscription(
             db, test_user.user_id, test_payment_method.payment_id
         )
         assert result["success"] is True
         subscription = result["subscription"]
 
         # Paso 2: Verificar suscripción activa
-        status = SubscriptionService.get_user_subscription(db, test_user.user_id)
+        status = subscription_service.get_user_subscription(db, test_user.user_id)
         assert status["has_subscription"] is True
 
         # Paso 3: Pausar suscripción
-        pause_result = SubscriptionService.pause_subscription(db, test_user.user_id)
+        pause_result = subscription_service.pause_subscription(db, test_user.user_id)
         assert pause_result["success"] is True
         assert pause_result["subscription"].subscription_status == SubscriptionStatus.PAUSED
 
         # Paso 4: Reanudar suscripción
-        resume_result = SubscriptionService.resume_subscription(db, test_user.user_id)
+        resume_result = subscription_service.resume_subscription(db, test_user.user_id)
         assert resume_result["success"] is True
         assert resume_result["subscription"].subscription_status == SubscriptionStatus.ACTIVE
 
@@ -391,13 +393,13 @@ class TestSubscriptionFunctional:
         db.add(new_payment)
         db.commit()
 
-        update_result = SubscriptionService.update_payment_method(
+        update_result = subscription_service.update_payment_method(
             db, test_user.user_id, new_payment.payment_id
         )
         assert update_result["success"] is True
 
         # Paso 6: Cancelar suscripción
-        cancel_result = SubscriptionService.cancel_subscription(db, test_user.user_id)
+        cancel_result = subscription_service.cancel_subscription(db, test_user.user_id)
         assert cancel_result["success"] is True
         assert cancel_result["subscription"].subscription_status == SubscriptionStatus.CANCELLED
 

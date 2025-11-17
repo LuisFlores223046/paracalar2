@@ -10,7 +10,7 @@ from app.api.v1.shipping.service import ShippingService
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, HTTPException, status, Depends
 
-router = APIRouter(prefix="/shipping", tags=["Shipping"])
+router = APIRouter()
 
 @router.post("/crear-pedido/", response_model=Order, status_code=status.HTTP_201_CREATED)
 def crear_pedido(pedido_in: CreateOrder, db: Session = Depends(get_db)):

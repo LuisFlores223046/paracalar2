@@ -6,7 +6,7 @@
 import pytest
 from sqlalchemy.orm import Session
 from decimal import Decimal
-from app.api.v1.search.service import SearchService
+from app.api.v1.search.service import search_service
 from app.api.v1.search import schemas
 from app.models.product import Product
 from app.models.product_image import ProductImage
@@ -74,7 +74,7 @@ class TestSearchServiceUnit:
         Descripción: Prueba unitaria para búsqueda por texto.
         """
         # Act
-        products, total = SearchService.search_and_filter_products(
+        products, total = search_service.search_and_filter_products(
             db, query="Proteínas", skip=0, limit=10
         )
 
@@ -91,7 +91,7 @@ class TestSearchServiceUnit:
         Descripción: Prueba unitaria para filtrar por categoría.
         """
         # Act
-        products, total = SearchService.search_and_filter_products(
+        products, total = search_service.search_and_filter_products(
             db, category="Creatina", skip=0, limit=10
         )
 
@@ -107,7 +107,7 @@ class TestSearchServiceUnit:
         Descripción: Prueba unitaria para filtrar por rango de precios.
         """
         # Act
-        products, total = SearchService.search_and_filter_products(
+        products, total = search_service.search_and_filter_products(
             db, min_price=Decimal('300.00'), max_price=Decimal('600.00'),
             skip=0, limit=10
         )
@@ -124,7 +124,7 @@ class TestSearchServiceUnit:
         Descripción: Prueba unitaria para filtrar por actividad física.
         """
         # Act
-        products, total = SearchService.search_and_filter_products(
+        products, total = search_service.search_and_filter_products(
             db, physical_activity="weightlifting", skip=0, limit=10
         )
 
@@ -140,7 +140,7 @@ class TestSearchServiceUnit:
         Descripción: Prueba unitaria para filtrar por objetivo fitness.
         """
         # Act
-        products, total = SearchService.search_and_filter_products(
+        products, total = search_service.search_and_filter_products(
             db, fitness_objective="muscle_gain", skip=0, limit=10
         )
 
@@ -156,7 +156,7 @@ class TestSearchServiceUnit:
         Descripción: Prueba unitaria para filtros combinados.
         """
         # Act
-        products, total = SearchService.search_and_filter_products(
+        products, total = search_service.search_and_filter_products(
             db,
             category="Proteínas",
             physical_activity="weightlifting",
@@ -180,10 +180,10 @@ class TestSearchServiceUnit:
         Descripción: Prueba unitaria para paginación de resultados.
         """
         # Act
-        products_page1, total = SearchService.search_and_filter_products(
+        products_page1, total = search_service.search_and_filter_products(
             db, skip=0, limit=2
         )
-        products_page2, _ = SearchService.search_and_filter_products(
+        products_page2, _ = search_service.search_and_filter_products(
             db, skip=2, limit=2
         )
 
@@ -202,7 +202,7 @@ class TestSearchServiceUnit:
         Descripción: Prueba unitaria para obtener categorías disponibles.
         """
         # Act
-        categories = SearchService.get_available_categories(db)
+        categories = search_service.get_available_categories(db)
 
         # Assert
         assert len(categories) >= 4
@@ -217,7 +217,7 @@ class TestSearchServiceUnit:
         Descripción: Prueba unitaria para obtener todos los filtros disponibles.
         """
         # Act
-        filters = SearchService.get_available_filters(db)
+        filters = search_service.get_available_filters(db)
 
         # Assert
         assert "categories" in filters
@@ -301,36 +301,36 @@ class TestSearchFunctional:
                      obtener filtros, buscar, refinar, paginar.
         """
         # Paso 1: Obtener filtros disponibles
-        filters = SearchService.get_available_filters(db)
+        filters = search_service.get_available_filters(db)
         assert len(filters["categories"]) >= 4
 
         # Paso 2: Búsqueda general
-        all_products, total = SearchService.search_and_filter_products(
+        all_products, total = search_service.search_and_filter_products(
             db, skip=0, limit=100
         )
         assert total >= 4
 
         # Paso 3: Búsqueda por texto
-        search_results, search_total = SearchService.search_and_filter_products(
+        search_results, search_total = search_service.search_and_filter_products(
             db, query="Test", skip=0, limit=10
         )
         assert search_total >= 4
 
         # Paso 4: Refinar por categoría
-        refined_results, refined_total = SearchService.search_and_filter_products(
+        refined_results, refined_total = search_service.search_and_filter_products(
             db, category="Proteínas", skip=0, limit=10
         )
         assert refined_total >= 1
 
         # Paso 5: Refinar por precio
-        price_results, price_total = SearchService.search_and_filter_products(
+        price_results, price_total = search_service.search_and_filter_products(
             db, min_price=Decimal('400.00'), max_price=Decimal('900.00'),
             skip=0, limit=10
         )
         assert price_total >= 1
 
         # Paso 6: Aplicar múltiples filtros
-        multi_filter_results, multi_total = SearchService.search_and_filter_products(
+        multi_filter_results, multi_total = search_service.search_and_filter_products(
             db,
             query="Test",
             physical_activity="weightlifting",

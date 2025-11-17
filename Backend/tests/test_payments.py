@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from sqlalchemy.orm import Session
 from decimal import Decimal
-from app.api.v1.payments import service
+from app.api.v1.payments.service import payment_process_service as service
 from app.api.v1.payments import schemas
 from app.models.user import User
 from app.models.address import Address
