@@ -42,7 +42,9 @@ from app.models.product import Product
 from app.models.product_image import ProductImage
 from app.models.shopping_cart import ShoppingCart
 from app.models.cart_item import CartItem
-from app.models.enum import UserRole, AuthType, Gender
+from app.models.address import Address
+from app.models.payment_method import PaymentMethod
+from app.models.enum import UserRole, AuthType, Gender, PaymentType
 from app.core.security import hash_password
 
 # Configuración de base de datos en memoria para tests
@@ -284,3 +286,58 @@ def mock_cognito_token():
         str: Token JWT de prueba.
     """
     return "mock-jwt-token-for-testing"
+
+
+@pytest.fixture
+def test_address(db, test_user):
+    """
+    Autor: Luis Flores
+    Descripción: Fixture que crea una dirección de prueba.
+    Parámetros:
+        db (Session): Sesión de base de datos.
+        test_user (User): Usuario de prueba.
+    Retorna:
+        Address: Dirección de prueba creada.
+    """
+    address = Address(
+        user_id=test_user.user_id,
+        address_name="Casa",
+        address_line1="Calle Test 123",
+        address_line2="Depto 4B",
+        country="México",
+        state="Chihuahua",
+        city="Juárez",
+        zip_code="32000",
+        recipient_name="Test User",
+        phone_number="1234567890",
+        is_default=True
+    )
+    db.add(address)
+    db.commit()
+    db.refresh(address)
+    return address
+
+
+@pytest.fixture
+def test_payment_method(db, test_user):
+    """
+    Autor: Luis Flores
+    Descripción: Fixture que crea un método de pago de prueba.
+    Parámetros:
+        db (Session): Sesión de base de datos.
+        test_user (User): Usuario de prueba.
+    Retorna:
+        PaymentMethod: Método de pago de prueba creado.
+    """
+    payment = PaymentMethod(
+        user_id=test_user.user_id,
+        payment_type=PaymentType.CREDIT_CARD,
+        provider_ref="test_stripe_pm_123",
+        last_four="4242",
+        expiration_date="12/2025",
+        is_default=True
+    )
+    db.add(payment)
+    db.commit()
+    db.refresh(payment)
+    return payment
