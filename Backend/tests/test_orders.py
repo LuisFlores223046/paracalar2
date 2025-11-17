@@ -194,12 +194,13 @@ class TestOrderServiceUnit:
         order_id = result["order"].order_id
 
         # Act
-        order = service.get_order_by_id(db, order_id, test_user.user_id)
+        result = service.get_order_by_id(db, test_user.cognito_sub, order_id)
 
         # Assert
-        assert order is not None
-        assert order.order_id == order_id
-        assert order.user_id == test_user.user_id
+        assert result["success"] is True
+        order = result["order"]
+        assert order["order_id"] == order_id
+        assert order["user_id"] == test_user.user_id
 
     def test_update_order_status(
         self, db: Session, test_user: User, test_address: Address,
@@ -230,12 +231,13 @@ class TestOrderServiceUnit:
         order_id = result["order"].order_id
 
         # Act
-        updated_order = service.update_order_status(
+        result = service.update_order_status(
             db, order_id, OrderStatus.PAID
         )
 
         # Assert
-        assert updated_order.order_status == OrderStatus.PAID
+        assert result["success"] is True
+        assert result["order"].order_status == OrderStatus.PAID
 
     def test_get_user_orders(
         self, db: Session, test_user: User, test_address: Address,
@@ -265,9 +267,12 @@ class TestOrderServiceUnit:
         )
 
         # Act
-        orders, total = service.get_user_orders(db, test_user.user_id, skip=0, limit=10)
+        result = service.get_user_orders(db, test_user.cognito_sub, limit=10, offset=0)
 
         # Assert
+        assert result["success"] is True
+        orders = result["orders"]
+        total = result["total"]
         assert total >= 1
         assert len(orders) >= 1
         assert orders[0].user_id == test_user.user_id
