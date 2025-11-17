@@ -1,0 +1,1462 @@
+.....................FFF..FFFF...................FFFF.F.FF.F.....FFF...F [ 50%]
+..FF.EE.EEEEFFFF...FF...............................FF......F.F..F.FFFF  [100%]
+==================================== ERRORS ====================================
+_ ERROR at setup of TestPaymentServiceUnit.test_calculate_checkout_summary_without_coupon _
+file /home/user/paracalar2/Backend/tests/test_payments.py, line 49
+      def test_calculate_checkout_summary_without_coupon(
+E       fixture 'test_cart_with_items' not found
+>       available fixtures: admin_client, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, db, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mock_cognito_token, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, test_address, test_admin, test_cart, test_coupon, test_payment_method, test_product, test_user, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, user_client
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/user/paracalar2/Backend/tests/test_payments.py:49
+_ ERROR at setup of TestPaymentServiceUnit.test_calculate_checkout_summary_with_coupon _
+file /home/user/paracalar2/Backend/tests/test_payments.py, line 76
+      def test_calculate_checkout_summary_with_coupon(
+E       fixture 'test_cart_with_items' not found
+>       available fixtures: admin_client, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, db, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mock_cognito_token, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, test_address, test_admin, test_cart, test_coupon, test_payment_method, test_product, test_user, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, user_client
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/user/paracalar2/Backend/tests/test_payments.py:76
+_ ERROR at setup of TestPaymentServiceUnit.test_create_stripe_checkout_session _
+file /home/user/paracalar2/Backend/tests/test_payments.py, line 127
+      @pytest.mark.asyncio
+      @patch('app.api.v1.payments.service.stripe_service')
+      @patch('app.api.v1.payments.service.order_service')
+      async def test_create_stripe_checkout_session(
+          self, mock_order_service, mock_stripe_service,
+          db: Session, test_user: User, test_address: Address,
+          test_cart_with_items: ShoppingCart
+      ):
+          """
+          Autor: Luis Flores
+          Descripción: Prueba unitaria para crear sesión de Stripe.
+          Parámetros:
+              mock_order_service: Mock del servicio de órdenes.
+              mock_stripe_service: Mock del servicio de Stripe.
+              db (Session): Sesión de base de datos de prueba.
+              test_user (User): Usuario de prueba.
+              test_address (Address): Dirección de prueba.
+              test_cart_with_items (ShoppingCart): Carrito con items.
+          """
+          # Arrange
+          mock_stripe_service.create_checkout_session = AsyncMock(return_value={
+              "success": True,
+              "session_id": "cs_test_123",
+              "checkout_url": "https://checkout.stripe.com/test"
+          })
+
+          # Act
+          result = await service.create_stripe_checkout_session(
+              db, test_user.cognito_sub, test_address.address_id
+          )
+
+          # Assert
+          assert result["success"] is True
+          assert "stripe_session_id" in result or "stripe_checkout_url" in result
+E       fixture 'test_cart_with_items' not found
+>       available fixtures: admin_client, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, db, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mock_cognito_token, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, test_address, test_admin, test_cart, test_coupon, test_payment_method, test_product, test_user, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, user_client
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/user/paracalar2/Backend/tests/test_payments.py:127
+___ ERROR at setup of TestPaymentServiceUnit.test_initialize_paypal_checkout ___
+file /home/user/paracalar2/Backend/tests/test_payments.py, line 162
+      @pytest.mark.asyncio
+      @patch('app.api.v1.payments.service.paypal_service')
+      async def test_initialize_paypal_checkout(
+          self, mock_paypal_service,
+          db: Session, test_user: User, test_address: Address,
+          test_cart_with_items: ShoppingCart
+      ):
+          """
+          Autor: Luis Flores
+          Descripción: Prueba unitaria para inicializar checkout de PayPal.
+          Parámetros:
+              mock_paypal_service: Mock del servicio de PayPal.
+              db (Session): Sesión de base de datos de prueba.
+              test_user (User): Usuario de prueba.
+              test_address (Address): Dirección de prueba.
+              test_cart_with_items (ShoppingCart): Carrito con items.
+          """
+          # Arrange
+          mock_paypal_service.create_order = AsyncMock(return_value={
+              "success": True,
+              "order_id": "PAYPAL123",
+              "approval_url": "https://paypal.com/checkout/PAYPAL123"
+          })
+
+          # Act
+          result = await service.initialize_paypal_checkout(
+              db, test_user.cognito_sub, test_address.address_id
+          )
+
+          # Assert
+          assert result["success"] is True
+          assert "paypal_order_id" in result
+          assert "paypal_approval_url" in result
+E       fixture 'test_cart_with_items' not found
+>       available fixtures: admin_client, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, db, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mock_cognito_token, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, test_address, test_admin, test_cart, test_coupon, test_payment_method, test_product, test_user, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, user_client
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/user/paracalar2/Backend/tests/test_payments.py:162
+__ ERROR at setup of TestPaymentAPIIntegration.test_checkout_summary_endpoint __
+file /home/user/paracalar2/Backend/tests/test_payments.py, line 205
+      def test_checkout_summary_endpoint(
+E       fixture 'test_cart_with_items' not found
+>       available fixtures: admin_client, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, db, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mock_cognito_token, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, test_address, test_admin, test_cart, test_coupon, test_payment_method, test_product, test_user, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, user_client
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/user/paracalar2/Backend/tests/test_payments.py:205
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:39:06,579 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:39:06,580 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:39:06,580 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:06,580 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:06,580 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:39:06,580 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:39:06,581 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:39:06,581 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:39:06,581 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:39:06,581 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:39:06,581 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:39:06,581 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:39:06,581 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:39:06,581 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+_ ERROR at setup of TestPaymentAPIIntegration.test_checkout_summary_with_coupon_endpoint _
+file /home/user/paracalar2/Backend/tests/test_payments.py, line 230
+      def test_checkout_summary_with_coupon_endpoint(
+E       fixture 'test_cart_with_items' not found
+>       available fixtures: admin_client, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, db, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mock_cognito_token, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, test_address, test_admin, test_cart, test_coupon, test_payment_method, test_product, test_user, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, user_client
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/user/paracalar2/Backend/tests/test_payments.py:230
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:39:06,863 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:39:06,864 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:39:06,864 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:06,864 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:06,864 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:39:06,865 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:39:06,865 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:39:06,865 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:39:06,865 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:39:06,865 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:39:06,865 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:39:06,865 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:39:06,865 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:39:06,865 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+=================================== FAILURES ===================================
+_________________ TestCognitoServiceUnit.test_sign_in_success __________________
+tests/test_auth.py:93: in test_sign_in_success
+    result = service.sign_in(credentials)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: CognitoService.sign_in() missing 1 required positional argument: 'password'
+___________ TestCognitoServiceUnit.test_sign_in_invalid_credentials ____________
+tests/test_auth.py:122: in test_sign_in_invalid_credentials
+    result = service.sign_in(credentials)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: CognitoService.sign_in() missing 1 required positional argument: 'password'
+_________________ TestCognitoServiceUnit.test_confirm_sign_up __________________
+tests/test_auth.py:148: in test_confirm_sign_up
+    result = service.confirm_sign_up(confirm_data)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: CognitoService.confirm_sign_up() missing 1 required positional argument: 'code'
+_________________ TestAuthAPIIntegration.test_signup_endpoint __________________
+tests/test_auth.py:246: in test_signup_endpoint
+    assert response.status_code in [200, 201]
+E   assert 422 in [200, 201]
+E    +  where 422 = <Response [422 Unprocessable Entity]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:38:50,532 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:38:50,532 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:38:50,532 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:38:50,532 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:38:50,533 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:38:50,533 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:38:50,533 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:38:50,533 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:38:50,533 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:38:50,534 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:38:50,534 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:38:50,534 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:38:50,534 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:38:50,534 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:38:50,538 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/auth/signup "HTTP/1.1 422 Unprocessable Entity"
+------------------------------ Captured log call -------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/v1/auth/signup "HTTP/1.1 422 Unprocessable Entity"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:38:50,547 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:38:50,547 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:38:50,547 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:38:50,547 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:38:50,548 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:38:50,548 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+_________________ TestAuthAPIIntegration.test_signin_endpoint __________________
+tests/test_auth.py:280: in test_signin_endpoint
+    assert response.status_code == 200
+E   assert 404 == 200
+E    +  where 404 = <Response [404 Not Found]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:38:50,562 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:38:50,563 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:38:50,563 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:38:50,563 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:38:50,563 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:38:50,563 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:38:50,564 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:38:50,564 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:38:50,564 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:38:50,564 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:38:50,564 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:38:50,564 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:38:50,564 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:38:50,564 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:38:50,567 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/auth/signin "HTTP/1.1 404 Not Found"
+------------------------------ Captured log call -------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/v1/auth/signin "HTTP/1.1 404 Not Found"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:38:50,576 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:38:50,576 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:38:50,576 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:38:50,577 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:38:50,577 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:38:50,577 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+______________ TestAuthFunctional.test_complete_registration_flow ______________
+tests/test_auth.py:330: in test_complete_registration_flow
+    assert signup_response.status_code in [200, 201]
+E   assert 422 in [200, 201]
+E    +  where 422 = <Response [422 Unprocessable Entity]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:38:50,590 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:38:50,590 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:38:50,591 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:38:50,591 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:38:50,591 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:38:50,591 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:38:50,591 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:38:50,592 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:38:50,592 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:38:50,592 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:38:50,592 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:38:50,592 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:38:50,592 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:38:50,592 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:38:50,597 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/auth/signup "HTTP/1.1 422 Unprocessable Entity"
+------------------------------ Captured log call -------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/v1/auth/signup "HTTP/1.1 422 Unprocessable Entity"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:38:50,605 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:38:50,605 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:38:50,606 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:38:50,606 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:38:50,606 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:38:50,606 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+________________ TestAuthFunctional.test_password_recovery_flow ________________
+tests/test_auth.py:378: in test_password_recovery_flow
+    assert forgot_response.status_code == 200
+E   assert 400 == 200
+E    +  where 400 = <Response [400 Bad Request]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:38:50,619 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:38:50,619 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:38:50,619 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:38:50,619 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:38:50,619 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:38:50,619 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:38:50,619 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:38:50,620 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:38:50,620 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:38:50,620 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:38:50,620 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:38:50,620 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:38:50,620 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:38:50,620 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:38:50,852 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/auth/forgot-password "HTTP/1.1 400 Bad Request"
+------------------------------ Captured log call -------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/v1/auth/forgot-password "HTTP/1.1 400 Bad Request"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:38:50,861 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:38:50,861 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:38:50,861 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:38:50,861 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:38:50,861 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:38:50,861 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+_________ TestLoyaltyServiceUnit.test_get_user_loyalty_status_new_user _________
+tests/test_loyalty.py:123: in test_get_user_loyalty_status_new_user
+    assert loyalty["loyalty_tier"]["tier_level"] == 1
+           ^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'loyalty_tier'
+____________________ TestLoyaltyServiceUnit.test_add_points ____________________
+tests/test_loyalty.py:162: in test_add_points
+    assert result["success"] is True
+E   assert False is True
+_________ TestLoyaltyServiceUnit.test_add_points_triggers_tier_upgrade _________
+tests/test_loyalty.py:211: in test_add_points_triggers_tier_upgrade
+    assert test_user_loyalty.loyalty_tier.tier_level == 2
+E   assert 1 == 2
+E    +  where 1 = <LoyaltyTier(tier_id=1, tier_level=1)>.tier_level
+E    +    where <LoyaltyTier(tier_id=1, tier_level=1)> = <UserLoyalty(loyalty_id=1, user_id=1, total_points=450)>.loyalty_tier
+______________ TestLoyaltyServiceUnit.test_expire_points_for_user ______________
+tests/test_loyalty.py:238: in test_expire_points_for_user
+    assert result["points_expired"] == 200
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'points_expired'
+________________ TestLoyaltyServiceUnit.test_get_point_history _________________
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/engine/base.py:2118: in _exec_insertmany_context
+    dialect.do_execute(
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/engine/default.py:951: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.IntegrityError: CHECK constraint failed: check_order_for_event_type
+
+The above exception was the direct cause of the following exception:
+tests/test_loyalty.py:291: in test_get_point_history
+    db.commit()
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/session.py:2030: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/session.py:1311: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/session.py:1286: in _prepare_impl
+    self.session.flush()
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/util/langhelpers.py:224: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/persistence.py:1143: in _emit_insert_statements
+    result = connection.execute(
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/engine/base.py:1844: in _execute_context
+    return self._exec_insertmany_context(dialect, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/engine/base.py:2126: in _exec_insertmany_context
+    self._handle_dbapi_exception(
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/engine/base.py:2355: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/engine/base.py:2118: in _exec_insertmany_context
+    dialect.do_execute(
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/engine/default.py:951: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) CHECK constraint failed: check_order_for_event_type
+E   [SQL: INSERT INTO point_history (loyalty_id, order_id, points_change, event_type, event_date) VALUES (?, ?, ?, ?, ?) RETURNING point_history_id]
+E   [parameters: (1, None, 50, 'PURCHASE', '2025-11-17')]
+E   (Background on this error at: https://sqlalche.me/e/20/gkpj)
+__________ TestLoyaltyServiceUnit.test_generate_monthly_coupons_tier1 __________
+tests/test_loyalty.py:344: in test_generate_monthly_coupons_tier1
+    assert coupon.discount_percentage == 5.0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'Coupon' object has no attribute 'discount_percentage'
+----------------------------- Captured stdout call -----------------------------
+Se generaron y asignaron 1 cupones al usuario ID 1 para el Tier 1.
+__________ TestLoyaltyAPIIntegration.test_get_loyalty_status_endpoint __________
+tests/test_loyalty.py:372: in test_get_loyalty_status_endpoint
+    assert response.status_code == 200
+E   assert 403 == 200
+E    +  where 403 = <Response [403 Forbidden]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:38:59,607 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:38:59,607 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:38:59,607 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:38:59,607 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:38:59,608 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:38:59,608 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:38:59,608 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:38:59,608 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:38:59,608 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:38:59,608 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:38:59,609 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:38:59,609 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:38:59,609 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:38:59,609 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:38:59,615 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/loyalty/me "HTTP/1.1 403 Forbidden"
+------------------------------ Captured log call -------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/v1/loyalty/me "HTTP/1.1 403 Forbidden"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:38:59,624 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:38:59,624 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:38:59,624 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:38:59,624 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:38:59,624 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:38:59,624 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+_______________ TestLoyaltyFunctional.test_complete_loyalty_flow _______________
+tests/test_loyalty.py:421: in test_complete_loyalty_flow
+    assert loyalty.loyalty_tier.tier_level == 1
+           ^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'dict' object has no attribute 'loyalty_tier'
+____________ TestOrderAPIIntegration.test_get_user_orders_endpoint _____________
+tests/test_orders.py:321: in test_get_user_orders_endpoint
+    assert response.status_code == 200
+E   assert 403 == 200
+E    +  where 403 = <Response [403 Forbidden]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:39:01,666 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:39:01,666 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:39:01,667 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:01,667 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:01,667 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:39:01,667 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:39:01,667 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:39:01,668 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:39:01,668 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:39:01,668 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:39:01,668 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:39:01,668 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:39:01,668 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:39:01,668 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:39:01,680 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/orders/ "HTTP/1.1 307 Temporary Redirect"
+2025-11-17 22:39:01,682 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/orders "HTTP/1.1 403 Forbidden"
+------------------------------ Captured log call -------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/v1/orders/ "HTTP/1.1 307 Temporary Redirect"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/v1/orders "HTTP/1.1 403 Forbidden"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:39:01,691 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:39:01,691 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:39:01,691 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:39:01,692 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:01,692 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:01,692 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+____________ TestOrderAPIIntegration.test_get_order_detail_endpoint ____________
+tests/test_orders.py:358: in test_get_order_detail_endpoint
+    assert response.status_code == 200
+E   assert 403 == 200
+E    +  where 403 = <Response [403 Forbidden]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:39:01,970 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:39:01,971 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:39:01,971 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:01,971 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:01,971 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:39:01,972 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:39:01,972 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:39:01,972 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:39:01,972 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:39:01,973 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:39:01,973 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:39:01,973 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:39:01,973 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:39:01,973 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:39:01,988 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/orders/1 "HTTP/1.1 403 Forbidden"
+------------------------------ Captured log call -------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/v1/orders/1 "HTTP/1.1 403 Forbidden"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:39:01,998 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:39:01,998 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:39:01,998 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:39:01,998 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:01,999 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:01,999 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+_________________ TestOrderFunctional.test_complete_order_flow _________________
+tests/test_orders.py:432: in test_complete_order_flow
+    assert final_order.order_status == OrderStatus.SHIPPED
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'dict' object has no attribute 'order_status'
+_______ TestPaymentMethodServiceUnit.test_save_payment_method_from_setup _______
+tests/test_payment_method.py:129: in test_save_payment_method_from_setup
+    assert result["success"] is True
+E   assert False is True
+______ TestPaymentMethodAPIIntegration.test_get_payment_methods_endpoint _______
+tests/test_payment_method.py:231: in test_get_payment_methods_endpoint
+    assert response.status_code == 200
+E   assert 403 == 200
+E    +  where 403 = <Response [403 Forbidden]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:39:04,283 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:39:04,284 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:39:04,284 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:04,284 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:04,285 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:39:04,285 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:39:04,285 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:39:04,286 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:39:04,286 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:39:04,286 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:39:04,286 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:39:04,286 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:39:04,286 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:39:04,286 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:39:04,290 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/payment-methods/ "HTTP/1.1 307 Temporary Redirect"
+2025-11-17 22:39:04,293 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/payment-methods "HTTP/1.1 403 Forbidden"
+------------------------------ Captured log call -------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/v1/payment-methods/ "HTTP/1.1 307 Temporary Redirect"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/v1/payment-methods "HTTP/1.1 403 Forbidden"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:39:04,302 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:39:04,303 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:39:04,303 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:39:04,303 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:04,303 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:04,303 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+______ TestPaymentMethodAPIIntegration.test_create_setup_intent_endpoint _______
+tests/test_payment_method.py:263: in test_create_setup_intent_endpoint
+    assert response.status_code == 200
+E   assert 403 == 200
+E    +  where 403 = <Response [403 Forbidden]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:39:04,583 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:39:04,584 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:39:04,584 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:04,584 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:04,584 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:39:04,584 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:39:04,585 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:39:04,585 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:39:04,585 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:39:04,585 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:39:04,585 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:39:04,585 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:39:04,585 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:39:04,586 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:39:04,590 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/payment-methods/setup-intent "HTTP/1.1 403 Forbidden"
+------------------------------ Captured log call -------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/v1/payment-methods/setup-intent "HTTP/1.1 403 Forbidden"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:39:04,599 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:39:04,599 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:39:04,599 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:39:04,600 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:04,600 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:04,600 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+___________ TestPaymentFunctional.test_complete_stripe_payment_flow ____________
+async def functions are not natively supported.
+You need to install a suitable plugin for your async framework, for example:
+  - anyio
+  - pytest-asyncio
+  - pytest-tornasync
+  - pytest-trio
+  - pytest-twisted
+__________ TestPaymentFunctional.test_checkout_with_loyalty_discount ___________
+tests/test_payments.py:374: in test_checkout_with_loyalty_discount
+    loyalty = UserLoyalty(
+<string>:4: in __init__
+    ???
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/state.py:571: in _initialize_instance
+    with util.safe_reraise():
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/util/langhelpers.py:224: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/state.py:569: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+/usr/local/lib/python3.11/dist-packages/sqlalchemy/orm/decl_base.py:2179: in _declarative_constructor
+    raise TypeError(
+E   TypeError: 'tier_level' is an invalid keyword argument for UserLoyalty
+___________ TestPlacementTestServiceUnit.test_filter_test_attributes ___________
+tests/test_placement_test.py:39: in test_filter_test_attributes
+    filtered = filter_test_attributes(input_data)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/api/v1/placement_test/service.py:90: in filter_test_attributes
+    raise InvalidInputError(f"Faltan campos requeridos: {', '.join(missing_fields)}")
+E   app.api.v1.placement_test.service.InvalidInputError: Faltan campos requeridos: diet_special, diet_type, supplements, activity_intensity, goal_declared, sleep_hours
+___________ TestPlacementTestServiceUnit.test_predict_plan_bestrong ____________
+app/api/v1/placement_test/service.py:153: in predict_plan
+    pred = model.predict(df)[0]
+           ^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sklearn/ensemble/_forest.py:903: in predict
+    proba = self.predict_proba(X)
+            ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sklearn/ensemble/_forest.py:945: in predict_proba
+    X = self._validate_X_predict(X)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sklearn/ensemble/_forest.py:637: in _validate_X_predict
+    X = validate_data(
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2929: in validate_data
+    _check_feature_names(_estimator, X, reset=reset)
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2735: in _check_feature_names
+    X_feature_names = _get_feature_names(X)
+                      ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2403: in _get_feature_names
+    if _is_pandas_df(X):
+       ^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2350: in _is_pandas_df
+    return isinstance(X, pd.DataFrame)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: isinstance() arg 2 must be a type, a tuple of types, or a union
+
+During handling of the above exception, another exception occurred:
+tests/test_placement_test.py:90: in test_predict_plan_bestrong
+    result = predict_plan(input_data)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+app/api/v1/placement_test/service.py:157: in predict_plan
+    raise PredictionError(f"Error al predecir el plan: {str(e)}")
+E   app.api.v1.placement_test.service.PredictionError: Error al predecir el plan: isinstance() arg 2 must be a type, a tuple of types, or a union
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:39:07,526 - app.api.v1.placement_test.service - ERROR - Error en la predicción del modelo: isinstance() arg 2 must be a type, a tuple of types, or a union
+------------------------------ Captured log call -------------------------------
+ERROR    app.api.v1.placement_test.service:service.py:156 Error en la predicción del modelo: isinstance() arg 2 must be a type, a tuple of types, or a union
+_________ TestPlacementTestAPIIntegration.test_placement_test_endpoint _________
+tests/test_placement_test.py:209: in test_placement_test_endpoint
+    assert response.status_code in [200, 201]
+E   assert 500 in [200, 201]
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:39:07,885 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:39:07,885 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:39:07,885 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:07,886 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:07,886 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:39:07,886 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:39:07,886 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:39:07,886 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:39:07,887 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:39:07,887 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:39:07,887 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:39:07,887 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:39:07,887 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:39:07,887 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:39:07,893 - app.api.v1.placement_test.routes - ERROR - Error en predicción: Error al codificar datos: Valor inválido para el campo 'activity_type': weightlifting. Valores permitidos: ['Any', 'Cardio', 'Mixed', 'Strength']
+2025-11-17 22:39:07,894 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/placement-test/ "HTTP/1.1 500 Internal Server Error"
+------------------------------ Captured log call -------------------------------
+ERROR    app.api.v1.placement_test.routes:routes.py:86 Error en predicción: Error al codificar datos: Valor inválido para el campo 'activity_type': weightlifting. Valores permitidos: ['Any', 'Cardio', 'Mixed', 'Strength']
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/v1/placement-test/ "HTTP/1.1 500 Internal Server Error"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:39:07,903 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:39:07,904 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:39:07,904 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:39:07,904 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:07,904 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:07,904 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+________ TestPlacementTestFunctional.test_complete_placement_test_flow _________
+app/api/v1/placement_test/service.py:153: in predict_plan
+    pred = model.predict(df)[0]
+           ^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sklearn/ensemble/_forest.py:903: in predict
+    proba = self.predict_proba(X)
+            ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sklearn/ensemble/_forest.py:945: in predict_proba
+    X = self._validate_X_predict(X)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sklearn/ensemble/_forest.py:637: in _validate_X_predict
+    X = validate_data(
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2929: in validate_data
+    _check_feature_names(_estimator, X, reset=reset)
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2735: in _check_feature_names
+    X_feature_names = _get_feature_names(X)
+                      ^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2403: in _get_feature_names
+    if _is_pandas_df(X):
+       ^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/dist-packages/sklearn/utils/validation.py:2350: in _is_pandas_df
+    return isinstance(X, pd.DataFrame)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: isinstance() arg 2 must be a type, a tuple of types, or a union
+
+During handling of the above exception, another exception occurred:
+tests/test_placement_test.py:278: in test_complete_placement_test_flow
+    result = predict_plan(user_input)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+app/api/v1/placement_test/service.py:157: in predict_plan
+    raise PredictionError(f"Error al predecir el plan: {str(e)}")
+E   app.api.v1.placement_test.service.PredictionError: Error al predecir el plan: isinstance() arg 2 must be a type, a tuple of types, or a union
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:39:08,184 - app.api.v1.placement_test.service - ERROR - Error en la predicción del modelo: isinstance() arg 2 must be a type, a tuple of types, or a union
+------------------------------ Captured log call -------------------------------
+ERROR    app.api.v1.placement_test.service:service.py:156 Error en la predicción del modelo: isinstance() arg 2 must be a type, a tuple of types, or a union
+_________ TestSubscriptionServiceUnit.test_create_subscription_success _________
+tests/test_subscriptions.py:105: in test_create_subscription_success
+    assert result["success"] is True
+E   assert False is True
+_ TestSubscriptionServiceUnit.test_create_subscription_without_fitness_profile _
+tests/test_subscriptions.py:127: in test_create_subscription_without_fitness_profile
+    assert "perfil" in result["error"].lower() or "fitness" in result["error"].lower()
+E   AssertionError: assert ('perfil' in 'el usuario debe completar el test de posicionamiento primero' or 'fitness' in 'el usuario debe completar el test de posicionamiento primero')
+E    +  where 'el usuario debe completar el test de posicionamiento primero' = <built-in method lower of str object at 0x7ed709a7ab10>()
+E    +    where <built-in method lower of str object at 0x7ed709a7ab10> = 'El usuario debe completar el test de posicionamiento primero'.lower
+E    +  and   'el usuario debe completar el test de posicionamiento primero' = <built-in method lower of str object at 0x7ed709a7ab10>()
+E    +    where <built-in method lower of str object at 0x7ed709a7ab10> = 'El usuario debe completar el test de posicionamiento primero'.lower
+________ TestSubscriptionAPIIntegration.test_get_subscription_endpoint _________
+tests/test_subscriptions.py:303: in test_get_subscription_endpoint
+    assert data["has_subscription"] is True
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'has_subscription'
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:39:13,460 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:39:13,460 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:39:13,461 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:13,461 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:13,461 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:39:13,461 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:39:13,461 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:39:13,462 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:39:13,462 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:39:13,462 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:39:13,462 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:39:13,462 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:39:13,462 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:39:13,462 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:39:13,473 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/subscriptions/my-subscription "HTTP/1.1 200 OK"
+------------------------------ Captured log call -------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/v1/subscriptions/my-subscription "HTTP/1.1 200 OK"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:39:13,483 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:39:13,483 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:39:13,483 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:39:13,484 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:13,484 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:13,484 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+_______ TestSubscriptionFunctional.test_complete_subscription_lifecycle ________
+/usr/lib/python3.11/unittest/mock.py:1375: in patched
+    with self.decoration_helper(patched,
+/usr/lib/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+/usr/lib/python3.11/unittest/mock.py:1357: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.11/contextlib.py:517: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+/usr/lib/python3.11/unittest/mock.py:1446: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.11/unittest/mock.py:1419: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'app.api.v1.subscriptions.service' from '/home/user/paracalar2/Backend/app/api/v1/subscriptions/service.py'> does not have the attribute 'order_service'
+_____________ TestUserProfileServiceUnit.test_update_profile_image _____________
+tests/test_user_profile.py:79: in test_update_profile_image
+    assert result["success"] is True
+E   assert False is True
+______________ TestUserProfileServiceUnit.test_get_basic_profile _______________
+tests/test_user_profile.py:104: in test_get_basic_profile
+    assert "user_id" in result
+E   AssertionError: assert 'user_id' in {'success': True, 'user': {'email': 'test@example.com', 'first_name': 'Test', 'last_name': 'User', 'profile_picture': None, ...}}
+___________ TestUserProfileAPIIntegration.test_get_profile_endpoint ____________
+tests/test_user_profile.py:126: in test_get_profile_endpoint
+    assert response.status_code == 200
+E   assert 403 == 200
+E    +  where 403 = <Response [403 Forbidden]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:39:15,934 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:39:15,934 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:39:15,934 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:15,934 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:15,935 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:39:15,935 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:39:15,935 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:39:15,935 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:39:15,936 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:39:15,936 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:39:15,936 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:39:15,936 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:39:15,936 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:39:15,936 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:39:15,940 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/profile/me "HTTP/1.1 403 Forbidden"
+------------------------------ Captured log call -------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/v1/profile/me "HTTP/1.1 403 Forbidden"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:39:15,947 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:39:15,947 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:39:15,947 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:39:15,947 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:15,947 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:15,947 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+__________ TestUserProfileAPIIntegration.test_update_profile_endpoint __________
+tests/test_user_profile.py:146: in test_update_profile_endpoint
+    assert response.status_code == 200
+E   assert 403 == 200
+E    +  where 403 = <Response [403 Forbidden]>.status_code
+---------------------------- Captured stderr setup -----------------------------
+2025-11-17 22:39:16,226 - app.main - INFO - Iniciando aplicación FastAPI...
+2025-11-17 22:39:16,226 - app.services.scheduler - INFO - Inicializando scheduler de tareas programadas...
+2025-11-17 22:39:16,227 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:16,227 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-11-17 22:39:16,227 - apscheduler.scheduler - INFO - Added job "Expiración diaria de puntos" to job store "default"
+2025-11-17 22:39:16,227 - apscheduler.scheduler - INFO - Added job "Procesamiento diario de suscripciones" to job store "default"
+2025-11-17 22:39:16,227 - apscheduler.scheduler - INFO - Scheduler started
+2025-11-17 22:39:16,228 - app.services.scheduler - INFO - Scheduler iniciado correctamente
+2025-11-17 22:39:16,228 - app.services.scheduler - INFO - 
+Jobs programados:
+2025-11-17 22:39:16,228 - app.services.scheduler - INFO -    • Expiración diaria de puntos (ID: expire_points_daily)
+2025-11-17 22:39:16,228 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:00:00
+2025-11-17 22:39:16,228 - app.services.scheduler - INFO -    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+2025-11-17 22:39:16,228 - app.services.scheduler - INFO -      Próxima ejecución: 2025-11-18 00:30:00
+2025-11-17 22:39:16,228 - app.main - INFO - Scheduler inicializado correctamente
+------------------------------ Captured log setup ------------------------------
+INFO     app.main:main.py:21 Iniciando aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:121 Inicializando scheduler de tareas programadas...
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:507 Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO     apscheduler.scheduler:base.py:1090 Added job "Expiración diaria de puntos" to job store "default"
+INFO     apscheduler.scheduler:base.py:1090 Added job "Procesamiento diario de suscripciones" to job store "default"
+INFO     apscheduler.scheduler:base.py:214 Scheduler started
+INFO     app.services.scheduler:scheduler.py:154 Scheduler iniciado correctamente
+INFO     app.services.scheduler:scheduler.py:157 
+Jobs programados:
+INFO     app.services.scheduler:scheduler.py:160    • Expiración diaria de puntos (ID: expire_points_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:00:00
+INFO     app.services.scheduler:scheduler.py:160    • Procesamiento diario de suscripciones (ID: process_subscriptions_daily)
+INFO     app.services.scheduler:scheduler.py:161      Próxima ejecución: 2025-11-18 00:30:00
+INFO     app.main:main.py:26 Scheduler inicializado correctamente
+----------------------------- Captured stderr call -----------------------------
+2025-11-17 22:39:16,232 - httpx - INFO - HTTP Request: PUT http://testserver/api/v1/profile/me "HTTP/1.1 403 Forbidden"
+------------------------------ Captured log call -------------------------------
+INFO     httpx:_client.py:1025 HTTP Request: PUT http://testserver/api/v1/profile/me "HTTP/1.1 403 Forbidden"
+--------------------------- Captured stderr teardown ---------------------------
+2025-11-17 22:39:16,239 - app.main - INFO - Deteniendo aplicación FastAPI...
+2025-11-17 22:39:16,239 - app.services.scheduler - INFO - Deteniendo scheduler...
+2025-11-17 22:39:16,239 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2025-11-17 22:39:16,240 - app.services.scheduler - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:16,240 - app.main - INFO - Scheduler detenido correctamente
+2025-11-17 22:39:16,240 - app.main - INFO - Aplicación detenida
+---------------------------- Captured log teardown -----------------------------
+INFO     app.main:main.py:33 Deteniendo aplicación FastAPI...
+INFO     app.services.scheduler:scheduler.py:173 Deteniendo scheduler...
+INFO     apscheduler.scheduler:base.py:245 Scheduler has been shut down
+INFO     app.services.scheduler:scheduler.py:176 Scheduler detenido correctamente
+INFO     app.main:main.py:38 Scheduler detenido correctamente
+INFO     app.main:main.py:42 Aplicación detenida
+_______ TestUserProfileFunctional.test_complete_profile_management_flow ________
+tests/test_user_profile.py:194: in test_complete_profile_management_flow
+    assert image_result["success"] is True
+E   assert False is True
+=============================== warnings summary ===============================
+app/core/database.py:27
+  /home/user/paracalar2/Backend/app/core/database.py:27: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+app/api/v1/loyalty/schemas.py:9
+  /home/user/paracalar2/Backend/app/api/v1/loyalty/schemas.py:9: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LoyaltyTierResponse(BaseModel):
+
+app/api/v1/loyalty/schemas.py:35
+  /home/user/paracalar2/Backend/app/api/v1/loyalty/schemas.py:35: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserLoyaltyResponse(BaseModel):
+
+app/api/v1/loyalty/schemas.py:71
+  /home/user/paracalar2/Backend/app/api/v1/loyalty/schemas.py:71: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PointHistoryResponse(BaseModel):
+
+app/api/v1/loyalty/schemas.py:95
+  /home/user/paracalar2/Backend/app/api/v1/loyalty/schemas.py:95: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class LoyaltyTiersListResponse(BaseModel):
+
+app/api/v1/loyalty/schemas.py:118
+  /home/user/paracalar2/Backend/app/api/v1/loyalty/schemas.py:118: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ExpirePointsResponse(BaseModel):
+
+app/api/v1/loyalty/schemas.py:141
+  /home/user/paracalar2/Backend/app/api/v1/loyalty/schemas.py:141: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class AddPointsResponse(BaseModel):
+
+app/config.py:13
+  /home/user/paracalar2/Backend/app/config.py:13: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Settings(BaseSettings):
+
+app/api/v1/subscriptions/schemas.py:14
+  /home/user/paracalar2/Backend/app/api/v1/subscriptions/schemas.py:14: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CreateSubscriptionRequest(BaseModel):
+
+app/api/v1/subscriptions/schemas.py:34
+  /home/user/paracalar2/Backend/app/api/v1/subscriptions/schemas.py:34: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SubscriptionResponse(BaseModel):
+
+app/api/v1/subscriptions/schemas.py:96
+  /home/user/paracalar2/Backend/app/api/v1/subscriptions/schemas.py:96: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SubscriptionSummary(BaseModel):
+
+app/api/v1/subscriptions/schemas.py:125
+  /home/user/paracalar2/Backend/app/api/v1/subscriptions/schemas.py:125: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UpdateSubscriptionRequest(BaseModel):
+
+app/api/v1/subscriptions/schemas.py:144
+  /home/user/paracalar2/Backend/app/api/v1/subscriptions/schemas.py:144: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class MessageResponse(BaseModel):
+
+app/api/v1/subscriptions/schemas.py:168
+  /home/user/paracalar2/Backend/app/api/v1/subscriptions/schemas.py:168: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SubscriptionOrderHistory(BaseModel):
+
+app/api/v1/subscriptions/schemas.py:190
+  /home/user/paracalar2/Backend/app/api/v1/subscriptions/schemas.py:190: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SubscriptionHistoryResponse(BaseModel):
+
+app/api/v1/products/schemas.py:30
+  /home/user/paracalar2/Backend/app/api/v1/products/schemas.py:30: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ProductImageResponse(ProductImageBase):
+
+app/api/v1/products/schemas.py:96
+  /home/user/paracalar2/Backend/app/api/v1/products/schemas.py:96: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ProductResponse(ProductBase):
+
+app/api/v1/products/schemas.py:116
+  /home/user/paracalar2/Backend/app/api/v1/products/schemas.py:116: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ProductListResponse(BaseModel):
+
+app/api/v1/products/schemas.py:164
+  /home/user/paracalar2/Backend/app/api/v1/products/schemas.py:164: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ReviewResponse(ReviewBase):
+
+app/api/v1/cart/schemas.py:38
+  /home/user/paracalar2/Backend/app/api/v1/cart/schemas.py:38: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CartItemProductInfo(BaseModel):
+
+app/api/v1/cart/schemas.py:55
+  /home/user/paracalar2/Backend/app/api/v1/cart/schemas.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CartItemResponse(BaseModel):
+
+app/api/v1/cart/schemas.py:76
+  /home/user/paracalar2/Backend/app/api/v1/cart/schemas.py:76: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ShoppingCartResponse(BaseModel):
+
+app/api/v1/admin/schemas.py:43
+  /home/user/paracalar2/Backend/app/api/v1/admin/schemas.py:43: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CreateAdminRequest(BaseModel):
+
+app/api/v1/admin/schemas.py:68
+  /home/user/paracalar2/Backend/app/api/v1/admin/schemas.py:68: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PromoteToAdminRequest(BaseModel):
+
+app/api/v1/admin/schemas.py:83
+  /home/user/paracalar2/Backend/app/api/v1/admin/schemas.py:83: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class AdminUserResponse(BaseModel):
+
+app/api/v1/search/schemas.py:9
+  /home/user/paracalar2/Backend/app/api/v1/search/schemas.py:9: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ProductListResponse(BaseModel):
+
+app/api/v1/address/schemas.py:8
+  /home/user/paracalar2/Backend/app/api/v1/address/schemas.py:8: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CreateAddressRequest(BaseModel):
+
+app/api/v1/address/schemas.py:52
+  /home/user/paracalar2/Backend/app/api/v1/address/schemas.py:52: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UpdateAddressRequest(BaseModel):
+
+app/api/v1/address/schemas.py:94
+  /home/user/paracalar2/Backend/app/api/v1/address/schemas.py:94: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class AddressResponse(BaseModel):
+
+app/api/v1/address/schemas.py:130
+  /home/user/paracalar2/Backend/app/api/v1/address/schemas.py:130: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class AddressListResponse(BaseModel):
+
+app/api/v1/orders/schemas.py:13
+  /home/user/paracalar2/Backend/app/api/v1/orders/schemas.py:13: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class OrderItemResponse(BaseModel):
+
+app/api/v1/orders/schemas.py:27
+  /home/user/paracalar2/Backend/app/api/v1/orders/schemas.py:27: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class OrderResponse(BaseModel):
+
+app/api/v1/orders/schemas.py:65
+  /home/user/paracalar2/Backend/app/api/v1/orders/schemas.py:65: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class OrderDetailResponse(BaseModel):
+
+app/api/v1/orders/schemas.py:121
+  /home/user/paracalar2/Backend/app/api/v1/orders/schemas.py:121: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class OrderListResponse(BaseModel):
+
+app/api/v1/orders/schemas.py:138
+  /home/user/paracalar2/Backend/app/api/v1/orders/schemas.py:138: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CancelOrderRequest(BaseModel):
+
+app/api/v1/shipping/schemas.py:22
+  /home/user/paracalar2/Backend/app/api/v1/shipping/schemas.py:22: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Order(BaseModel):
+
+app/api/v1/payment_method/schemas.py:11
+  /home/user/paracalar2/Backend/app/api/v1/payment_method/schemas.py:11: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SetupIntentResponse(BaseModel):
+
+app/api/v1/payment_method/schemas.py:28
+  /home/user/paracalar2/Backend/app/api/v1/payment_method/schemas.py:28: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SavePaymentMethodRequest(BaseModel):
+
+app/api/v1/payment_method/schemas.py:43
+  /home/user/paracalar2/Backend/app/api/v1/payment_method/schemas.py:43: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PaymentMethodResponse(BaseModel):
+
+app/api/v1/payment_method/schemas.py:67
+  /home/user/paracalar2/Backend/app/api/v1/payment_method/schemas.py:67: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PaymentMethodListResponse(BaseModel):
+
+app/api/v1/payments/schemas.py:12
+  /home/user/paracalar2/Backend/app/api/v1/payments/schemas.py:12: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CheckoutSummaryRequest(BaseModel):
+
+app/api/v1/payments/schemas.py:27
+  /home/user/paracalar2/Backend/app/api/v1/payments/schemas.py:27: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class StripeCheckoutRequest(BaseModel):
+
+app/api/v1/payments/schemas.py:46
+  /home/user/paracalar2/Backend/app/api/v1/payments/schemas.py:46: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PayPalCheckoutRequest(BaseModel):
+
+app/api/v1/payments/schemas.py:61
+  /home/user/paracalar2/Backend/app/api/v1/payments/schemas.py:61: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PayPalCaptureRequest(BaseModel):
+
+app/api/v1/payments/schemas.py:78
+  /home/user/paracalar2/Backend/app/api/v1/payments/schemas.py:78: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PaymentResponse(BaseModel):
+
+app/api/v1/payments/schemas.py:104
+  /home/user/paracalar2/Backend/app/api/v1/payments/schemas.py:104: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CheckoutSummary(BaseModel):
+
+app/api/v1/payments/schemas.py:135
+  /home/user/paracalar2/Backend/app/api/v1/payments/schemas.py:135: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class StripeWebhookEvent(BaseModel):
+
+app/api/v1/user_profile/schemas.py:9
+  /home/user/paracalar2/Backend/app/api/v1/user_profile/schemas.py:9: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UpdateProfileRequest(BaseModel):
+
+app/api/v1/user_profile/schemas.py:28
+  /home/user/paracalar2/Backend/app/api/v1/user_profile/schemas.py:28: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserProfileResponse(BaseModel):
+
+app/api/v1/user_profile/schemas.py:62
+  /home/user/paracalar2/Backend/app/api/v1/user_profile/schemas.py:62: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ProfileImageResponse(BaseModel):
+
+app/api/v1/user_profile/schemas.py:79
+  /home/user/paracalar2/Backend/app/api/v1/user_profile/schemas.py:79: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class DeleteAccountResponse(BaseModel):
+
+app/api/v1/user_profile/schemas.py:94
+  /home/user/paracalar2/Backend/app/api/v1/user_profile/schemas.py:94: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class BasicProfileResponse(BaseModel):
+
+app/api/v1/placement_test/schemas.py:17
+  /home/user/paracalar2/Backend/app/api/v1/placement_test/schemas.py:17: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator('age')
+
+app/api/v1/placement_test/schemas.py:25
+  /home/user/paracalar2/Backend/app/api/v1/placement_test/schemas.py:25: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator('exercise_freq')
+
+app/api/v1/placement_test/schemas.py:31
+  /home/user/paracalar2/Backend/app/api/v1/placement_test/schemas.py:31: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator('sleep_hours')
+
+app/api/v1/placement_test/schemas.py:4
+  /home/user/paracalar2/Backend/app/api/v1/placement_test/schemas.py:4: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PlacementTestInput(BaseModel):
+
+app/api/v1/placement_test/schemas.py:53
+  /home/user/paracalar2/Backend/app/api/v1/placement_test/schemas.py:53: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class PlacementTestOutput(BaseModel):
+
+app/api/v1/placement_test/schemas.py:82
+  /home/user/paracalar2/Backend/app/api/v1/placement_test/schemas.py:82: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ErrorResponse(BaseModel):
+
+tests/test_payments.py:127
+  /home/user/paracalar2/Backend/tests/test_payments.py:127: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests/test_payments.py:162
+  /home/user/paracalar2/Backend/tests/test_payments.py:162: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests/test_payments.py:268
+  /home/user/paracalar2/Backend/tests/test_payments.py:268: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+tests/test_placement_test.py::TestPlacementTestAPIIntegration::test_placement_test_endpoint
+  /home/user/paracalar2/Backend/app/api/v1/placement_test/routes.py:47: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    result = predict_plan(data.dict())
+
+tests/test_products.py::TestProductFunctional::test_product_review_workflow
+  /home/user/paracalar2/Backend/app/api/v1/products/routes.py:109: PydanticDeprecatedSince20: The `from_orm` method is deprecated; set `model_config['from_attributes']=True` and use `model_validate` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    review_dict = schemas.ReviewResponse.from_orm(review)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_auth.py::TestCognitoServiceUnit::test_sign_in_success - Typ...
+FAILED tests/test_auth.py::TestCognitoServiceUnit::test_sign_in_invalid_credentials
+FAILED tests/test_auth.py::TestCognitoServiceUnit::test_confirm_sign_up - Typ...
+FAILED tests/test_auth.py::TestAuthAPIIntegration::test_signup_endpoint - ass...
+FAILED tests/test_auth.py::TestAuthAPIIntegration::test_signin_endpoint - ass...
+FAILED tests/test_auth.py::TestAuthFunctional::test_complete_registration_flow
+FAILED tests/test_auth.py::TestAuthFunctional::test_password_recovery_flow - ...
+FAILED tests/test_loyalty.py::TestLoyaltyServiceUnit::test_get_user_loyalty_status_new_user
+FAILED tests/test_loyalty.py::TestLoyaltyServiceUnit::test_add_points - asser...
+FAILED tests/test_loyalty.py::TestLoyaltyServiceUnit::test_add_points_triggers_tier_upgrade
+FAILED tests/test_loyalty.py::TestLoyaltyServiceUnit::test_expire_points_for_user
+FAILED tests/test_loyalty.py::TestLoyaltyServiceUnit::test_get_point_history
+FAILED tests/test_loyalty.py::TestLoyaltyServiceUnit::test_generate_monthly_coupons_tier1
+FAILED tests/test_loyalty.py::TestLoyaltyAPIIntegration::test_get_loyalty_status_endpoint
+FAILED tests/test_loyalty.py::TestLoyaltyFunctional::test_complete_loyalty_flow
+FAILED tests/test_orders.py::TestOrderAPIIntegration::test_get_user_orders_endpoint
+FAILED tests/test_orders.py::TestOrderAPIIntegration::test_get_order_detail_endpoint
+FAILED tests/test_orders.py::TestOrderFunctional::test_complete_order_flow - ...
+FAILED tests/test_payment_method.py::TestPaymentMethodServiceUnit::test_save_payment_method_from_setup
+FAILED tests/test_payment_method.py::TestPaymentMethodAPIIntegration::test_get_payment_methods_endpoint
+FAILED tests/test_payment_method.py::TestPaymentMethodAPIIntegration::test_create_setup_intent_endpoint
+FAILED tests/test_payments.py::TestPaymentFunctional::test_complete_stripe_payment_flow
+FAILED tests/test_payments.py::TestPaymentFunctional::test_checkout_with_loyalty_discount
+FAILED tests/test_placement_test.py::TestPlacementTestServiceUnit::test_filter_test_attributes
+FAILED tests/test_placement_test.py::TestPlacementTestServiceUnit::test_predict_plan_bestrong
+FAILED tests/test_placement_test.py::TestPlacementTestAPIIntegration::test_placement_test_endpoint
+FAILED tests/test_placement_test.py::TestPlacementTestFunctional::test_complete_placement_test_flow
+FAILED tests/test_subscriptions.py::TestSubscriptionServiceUnit::test_create_subscription_success
+FAILED tests/test_subscriptions.py::TestSubscriptionServiceUnit::test_create_subscription_without_fitness_profile
+FAILED tests/test_subscriptions.py::TestSubscriptionAPIIntegration::test_get_subscription_endpoint
+FAILED tests/test_subscriptions.py::TestSubscriptionFunctional::test_complete_subscription_lifecycle
+FAILED tests/test_user_profile.py::TestUserProfileServiceUnit::test_update_profile_image
+FAILED tests/test_user_profile.py::TestUserProfileServiceUnit::test_get_basic_profile
+FAILED tests/test_user_profile.py::TestUserProfileAPIIntegration::test_get_profile_endpoint
+FAILED tests/test_user_profile.py::TestUserProfileAPIIntegration::test_update_profile_endpoint
+FAILED tests/test_user_profile.py::TestUserProfileFunctional::test_complete_profile_management_flow
+ERROR tests/test_payments.py::TestPaymentServiceUnit::test_calculate_checkout_summary_without_coupon
+ERROR tests/test_payments.py::TestPaymentServiceUnit::test_calculate_checkout_summary_with_coupon
+ERROR tests/test_payments.py::TestPaymentServiceUnit::test_create_stripe_checkout_session
+ERROR tests/test_payments.py::TestPaymentServiceUnit::test_initialize_paypal_checkout
+ERROR tests/test_payments.py::TestPaymentAPIIntegration::test_checkout_summary_endpoint
+ERROR tests/test_payments.py::TestPaymentAPIIntegration::test_checkout_summary_with_coupon_endpoint
+36 failed, 101 passed, 63 warnings, 6 errors in 32.33s
