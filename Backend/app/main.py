@@ -3,6 +3,7 @@ from app.services.scheduler import start_scheduler, stop_scheduler
 from contextlib import asynccontextmanager
 import logging
 from fastapi.middleware.cors import CORSMiddleware
+from app.config import settings
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,24 +40,22 @@ async def lifespan(app: FastAPI):
         
     logger.info("Aplicación detenida")
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    lifespan=lifespan
+)
+
+# ✅ Ya no necesitas json.loads() - BACKEND_CORS_ORIGINS ya es una lista
+logger.info(f"CORS Origins configurados: {settings.BACKEND_CORS_ORIGINS}")
 
 app.add_middleware(
     CORSMiddleware,
-    #allow_origins=["*"],
-    allow_origins=[
-        # Desarrollo
-        "http://localhost:3000", # react
-        "http://localhost:8000", # backend api
-        # Producción
-        #"https://app.midominio.com", # ec2 + dominio y elastic ip + nginx
-        #"https://frontend.d34s9corpodswj.amplifyapp.com" # frontend
-    ],
+    allow_origins=settings.BACKEND_CORS_ORIGINS,  # Ya es List[str]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # Esto es una prueba para probar el comando de uvicorn
 @app.get("/")
