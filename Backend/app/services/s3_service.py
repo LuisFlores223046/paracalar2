@@ -50,7 +50,8 @@ class S3Service:
                 img_format = img.format
 
                 if img_format not in allowed_formats:
-                    return {"success": False, "error": f"Formato de imagen no permitido. Los formatos permitidos son: {", ".join(allowed_formats)}"}
+                    formats_str = ", ".join(allowed_formats)
+                    return {"success": False, "error": f"Formato de imagen no permitido. Los formatos permitidos son: {formats_str}"}
 
             except Exception as e:
                 return {"success": False, "error": f"El archivo no es una imagen válida o está corrupto. Detalle: {str(e)}"}
@@ -127,7 +128,8 @@ class S3Service:
                 img_format = img.format
 
                 if img_format not in allowed_formats:
-                    return {"success": False, "error": f"Formato de imagen no permitido. Los formatos permitidos son: {", ".join(allowed_formats)}"}
+                    formats_str = ", ".join(allowed_formats)
+                    return {"success": False, "error": f"Formato de imagen no permitido. Los formatos permitidos son: {formats_str}"}
             
             except Exception as e:
                 return {"success": False, "error": f"El archivo no es una imagen válida o está corrupto. Detalle: {str(e)}"}

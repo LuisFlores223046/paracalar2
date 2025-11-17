@@ -120,7 +120,7 @@ class TestLoyaltyServiceUnit:
         assert "loyalty" in result
         loyalty = result["loyalty"]
         assert loyalty["total_points"] == 0
-        assert loyalty["loyalty_tier"]["tier_level"] == 1
+        assert loyalty["tier_level"] == 1
 
     def test_add_points(
         self, db: Session, test_user_loyalty: UserLoyalty,
