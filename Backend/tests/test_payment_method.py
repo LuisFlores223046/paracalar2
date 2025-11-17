@@ -225,7 +225,7 @@ class TestPaymentMethodAPIIntegration:
             test_payment_method (PaymentMethod): Método de pago de prueba.
         """
         # Act
-        response = user_client.get("/api/v1/payment-method/")
+        response = user_client.get("/api/v1/payment-methods/")
 
         # Assert
         assert response.status_code == 200
@@ -257,7 +257,7 @@ class TestPaymentMethodAPIIntegration:
         }
 
         # Act
-        response = user_client.post("/api/v1/payment-method/setup-intent")
+        response = user_client.post("/api/v1/payment-methods/setup-intent")
 
         # Assert
         assert response.status_code == 200

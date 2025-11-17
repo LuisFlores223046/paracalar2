@@ -27,8 +27,10 @@ class TestAddressServiceUnit:
             db (Session): Sesión de base de datos de prueba.
             test_user (User): Usuario de prueba.
         """
-        # Arrange
-        address_data = schemas.CreateAddressRequest(
+        # Act
+        result = address_service.create_address(
+            db=db,
+            cognito_sub=test_user.cognito_sub,
             address_name="Oficina",
             address_line1="Av. Principal 456",
             address_line2="Piso 3",
@@ -41,10 +43,9 @@ class TestAddressServiceUnit:
             is_default=False
         )
 
-        # Act
-        address = address_service.create_address(db=db, user_id=test_user.user_id, address_data=address_data)
-
         # Assert
+        assert result["success"] is True
+        address = result["address"]
         assert address.address_id is not None
         assert address.user_id == test_user.user_id
         assert address.address_name == "Oficina"
@@ -87,10 +88,12 @@ class TestAddressServiceUnit:
         db.commit()
 
         # Act
-        addresses = address_service.get_user_addresses(db=db, user_id=test_user.user_id)
+        result = address_service.get_user_addresses(db=db, cognito_sub=test_user.cognito_sub)
 
         # Assert
-        assert len(addresses) >= 2
+        assert result["success"] is True
+        assert result["total"] >= 2
+        assert len(result["addresses"]) >= 2
 
     def test_update_address(self, db: Session, test_user: User):
         """
@@ -117,17 +120,18 @@ class TestAddressServiceUnit:
         db.commit()
         db.refresh(address)
 
-        update_data = schemas.UpdateAddressRequest(
+        # Act
+        result = address_service.update_address(
+            db=db,
+            cognito_sub=test_user.cognito_sub,
+            address_id=address.address_id,
             address_name="Actualizada",
             city="Chihuahua"
         )
 
-        # Act
-        updated = address_service.update_address(
-            db=db, address_id=address.address_id, user_id=test_user.user_id, address_data=update_data
-        )
-
         # Assert
+        assert result["success"] is True
+        updated = result["address"]
         assert updated.address_name == "Actualizada"
         assert updated.city == "Chihuahua"
 
@@ -157,10 +161,10 @@ class TestAddressServiceUnit:
         address_id = address.address_id
 
         # Act
-        result = address_service.delete_address(db=db, address_id=address_id, user_id=test_user.user_id)
+        result = address_service.delete_address(db=db, cognito_sub=test_user.cognito_sub, address_id=address_id)
 
         # Assert
-        assert result is True
+        assert result["success"] is True
         deleted = db.query(Address).filter(Address.address_id == address_id).first()
         assert deleted is None
 
@@ -201,9 +205,10 @@ class TestAddressServiceUnit:
         db.commit()
 
         # Act
-        address_service.set_default_address(db=db, address_id=address2.address_id, user_id=test_user.user_id)
+        result = address_service.set_default_address(db=db, cognito_sub=test_user.cognito_sub, address_id=address2.address_id)
 
         # Assert
+        assert result["success"] is True
         db.refresh(address1)
         db.refresh(address2)
         assert address1.is_default is False
@@ -240,7 +245,7 @@ class TestAddressAPIIntegration:
         }
 
         # Act
-        response = user_client.post("/api/v1/address/", json=address_data)
+        response = user_client.post("/api/v1/addresses/", json=address_data)
 
         # Assert
         assert response.status_code in [200, 201]
@@ -273,13 +278,15 @@ class TestAddressAPIIntegration:
         db.commit()
 
         # Act
-        response = user_client.get("/api/v1/address/")
+        response = user_client.get("/api/v1/addresses/")
 
         # Assert
         assert response.status_code == 200
         data = response.json()
-        assert isinstance(data, list)
-        assert len(data) >= 1
+        assert data["success"] is True
+        assert isinstance(data["addresses"], list)
+        assert len(data["addresses"]) >= 1
+        assert data["total"] >= 1
 
 
 # ==================== PRUEBAS FUNCIONALES ====================
@@ -300,7 +307,9 @@ class TestAddressFunctional:
             test_user (User): Usuario de prueba.
         """
         # Paso 1: Crear primera dirección
-        address1_data = schemas.CreateAddressRequest(
+        result1 = address_service.create_address(
+            db=db,
+            cognito_sub=test_user.cognito_sub,
             address_name="Casa",
             address_line1="Calle 1",
             country="México",
@@ -311,11 +320,14 @@ class TestAddressFunctional:
             phone_number="1234567890",
             is_default=True
         )
-        address1 = address_service.create_address(db=db, user_id=test_user.user_id, address_data=address1_data)
+        assert result1["success"] is True
+        address1 = result1["address"]
         assert address1.is_default is True
 
         # Paso 2: Crear segunda dirección
-        address2_data = schemas.CreateAddressRequest(
+        result2 = address_service.create_address(
+            db=db,
+            cognito_sub=test_user.cognito_sub,
             address_name="Trabajo",
             address_line1="Calle 2",
             country="México",
@@ -326,29 +338,46 @@ class TestAddressFunctional:
             phone_number="9876543210",
             is_default=False
         )
-        address2 = address_service.create_address(db=db, user_id=test_user.user_id, address_data=address2_data)
+        assert result2["success"] is True
+        address2 = result2["address"]
 
         # Paso 3: Listar direcciones
-        addresses = address_service.get_user_addresses(db=db, user_id=test_user.user_id)
-        assert len(addresses) == 2
+        list_result = address_service.get_user_addresses(db=db, cognito_sub=test_user.cognito_sub)
+        assert list_result["success"] is True
+        assert list_result["total"] == 2
 
         # Paso 4: Actualizar segunda dirección
-        update_data = schemas.UpdateAddressRequest(address_name="Oficina")
-        updated = address_service.update_address(
-            db=db, address_id=address2.address_id, user_id=test_user.user_id, address_data=update_data
+        update_result = address_service.update_address(
+            db=db,
+            cognito_sub=test_user.cognito_sub,
+            address_id=address2.address_id,
+            address_name="Oficina"
         )
+        assert update_result["success"] is True
+        updated = update_result["address"]
         assert updated.address_name == "Oficina"
 
         # Paso 5: Cambiar dirección por defecto
-        address_service.set_default_address(db=db, address_id=address2.address_id, user_id=test_user.user_id)
+        default_result = address_service.set_default_address(
+            db=db,
+            cognito_sub=test_user.cognito_sub,
+            address_id=address2.address_id
+        )
+        assert default_result["success"] is True
         db.refresh(address1)
         db.refresh(address2)
         assert address2.is_default is True
         assert address1.is_default is False
 
         # Paso 6: Eliminar primera dirección
-        address_service.delete_address(db=db, address_id=address1.address_id, user_id=test_user.user_id)
-        remaining = address_service.get_user_addresses(db=db, user_id=test_user.user_id)
-        assert len(remaining) == 1
+        delete_result = address_service.delete_address(
+            db=db,
+            cognito_sub=test_user.cognito_sub,
+            address_id=address1.address_id
+        )
+        assert delete_result["success"] is True
+        remaining_result = address_service.get_user_addresses(db=db, cognito_sub=test_user.cognito_sub)
+        assert remaining_result["success"] is True
+        assert remaining_result["total"] == 1
 
         print("✅ Prueba funcional de gestión de direcciones completada")
