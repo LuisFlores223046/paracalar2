@@ -9,7 +9,6 @@ import json
 from typing import List
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
-from dotenv import load_dotenv
 
 class Settings(BaseSettings):
     """
@@ -19,7 +18,7 @@ class Settings(BaseSettings):
     # ============ APLICACIÓN ============
     APP_NAME: str = "BeFit API"
     APP_VERSION: str = "1.0.0"
-    DEBUG: bool = True
+    DEBUG: bool = False
     
     # ============ BASE DE DATOS ============
     DATABASE_URL: str
