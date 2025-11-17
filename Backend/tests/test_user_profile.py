@@ -201,4 +201,4 @@ class TestUserProfileFunctional:
         delete_result = UserProfileService.soft_delete_account(db, test_user.cognito_sub)
         assert delete_result["success"] is True
 
-        print("✅ Prueba funcional de gestión de perfil completada")
+        print("Prueba funcional de gestión de perfil completada")

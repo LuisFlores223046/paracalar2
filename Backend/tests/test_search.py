@@ -340,4 +340,4 @@ class TestSearchFunctional:
         )
         assert multi_total >= 0
 
-        print("✅ Prueba funcional de flujo completo de búsqueda completada")
+        print("Prueba funcional de flujo completo de búsqueda completada")

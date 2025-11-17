@@ -351,4 +351,4 @@ class TestAddressFunctional:
         remaining = AddressService.get_user_addresses(db, test_user.user_id)
         assert len(remaining) == 1
 
-        print("✅ Prueba funcional de gestión de direcciones completada")
+        print("Prueba funcional de gestión de direcciones completada")

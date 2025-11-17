@@ -401,4 +401,4 @@ class TestSubscriptionFunctional:
         assert cancel_result["success"] is True
         assert cancel_result["subscription"].subscription_status == SubscriptionStatus.CANCELLED
 
-        print("✅ Prueba funcional de ciclo de vida de suscripción completada")
+        print("Prueba funcional de ciclo de vida de suscripción completada")

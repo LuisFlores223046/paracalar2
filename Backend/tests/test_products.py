@@ -451,7 +451,7 @@ class TestProductFunctional:
         db.refresh(product)
         assert product.is_active is False
         
-        print("✅ Prueba funcional de ciclo de vida de producto completada")
+        print("Prueba funcional de ciclo de vida de producto completada")
     
     def test_product_review_workflow(self, client, db, test_product, test_user):
         """

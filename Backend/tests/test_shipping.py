@@ -209,4 +209,4 @@ class TestShippingFunctional:
         details = shipping_service.get_details(db, order.order_id)
         assert details.order_status == OrderStatus.DELIVERED.value
 
-        print("✅ Prueba funcional de ciclo de vida de rastreo completada")
+        print("Prueba funcional de ciclo de vida de rastreo completada")

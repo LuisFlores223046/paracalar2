@@ -426,4 +426,4 @@ class TestOrderFunctional:
         final_order = service.get_order_by_id(db, order.order_id, test_user.user_id)
         assert final_order.order_status == OrderStatus.SHIPPED
 
-        print("✅ Prueba funcional de flujo completo de orden completada")
+        print("Prueba funcional de flujo completo de orden completada")

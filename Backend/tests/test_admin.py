@@ -408,7 +408,7 @@ class TestAdminFunctional:
         )
         assert reactivated.is_active is True
         
-        print("✅ Prueba funcional de gestión de productos completada")
+        print("Prueba funcional de gestión de productos completada")
     
     def test_bulk_operations_workflow(self, db, test_admin):
         """
@@ -484,7 +484,7 @@ class TestAdminFunctional:
             ).first()
             assert deleted is None
         
-        print("✅ Prueba funcional de operaciones en lote completada")
+        print("Prueba funcional de operaciones en lote completada")
     
     def test_inventory_management_workflow(self, db, test_admin):
         """

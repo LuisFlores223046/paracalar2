@@ -341,7 +341,7 @@ class TestPaymentFunctional:
         # Verificar que se llamó al servicio de órdenes
         assert mock_order_service.create_order_from_cart.called
 
-        print("✅ Prueba funcional de flujo completo de pago con Stripe completada")
+        print("Prueba funcional de flujo completo de pago con Stripe completada")
 
     def test_checkout_with_loyalty_discount(
         self, db, test_user, test_address, test_product
@@ -402,4 +402,4 @@ class TestPaymentFunctional:
         summary = result["summary"]
         assert summary["total_amount"] > 0
 
-        print("✅ Prueba funcional de checkout con descuento de lealtad completada")
+        print("Prueba funcional de checkout con descuento de lealtad completada")

@@ -468,4 +468,4 @@ class TestLoyaltyFunctional:
         assert expire_result["points_expired"] == 1540
         assert expire_result["new_tier_level"] == 1
 
-        print("✅ Prueba funcional de flujo completo de lealtad completada")
+        print("Prueba funcional de flujo completo de lealtad completada")

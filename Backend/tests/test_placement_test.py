@@ -301,7 +301,7 @@ class TestPlacementTestFunctional:
         assert saved_profile.attributes["age"] == 28
         assert saved_profile.attributes["gender"] == "M"
 
-        print("✅ Prueba funcional de placement test completada")
+        print("Prueba funcional de placement test completada")
 
     def test_all_plan_types(self):
         """
@@ -317,4 +317,4 @@ class TestPlacementTestFunctional:
         assert all(isinstance(plan, str) for plan in expected_plans)
         assert len(expected_plans) == 5
 
-        print("✅ Prueba de tipos de planes completada")
+        print("Prueba de tipos de planes completada")

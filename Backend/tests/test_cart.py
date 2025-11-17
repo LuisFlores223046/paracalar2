@@ -435,7 +435,7 @@ class TestCartFunctional:
         summary_after = CartService.get_cart_summary(db, test_user.user_id)
         assert summary_after["total_items"] == 0
         
-        print("✅ Prueba funcional de flujo de compra completada")
+        print("Prueba funcional de flujo de compra completada")
     
     def test_cart_multi_product_management(self, db, test_user):
         """
@@ -493,7 +493,7 @@ class TestCartFunctional:
         summary = CartService.get_cart_summary(db, test_user.user_id)
         assert summary["total_items"] == 4  # 2 productos x 2 unidades
         
-        print("✅ Prueba funcional de gestión multi-producto completada")
+        print("Prueba funcional de gestión multi-producto completada")
     
     def test_cart_stock_validation_workflow(self, db, test_user, test_product):
         """
@@ -544,4 +544,4 @@ class TestCartFunctional:
         test_product.stock = original_stock
         db.commit()
         
-        print("✅ Prueba funcional de validación de stock completada")
+        print("Prueba funcional de validación de stock completada")

@@ -373,4 +373,4 @@ class TestPaymentMethodFunctional:
         )
         assert final_list["total"] == 1
 
-        print("✅ Prueba funcional de gestión de métodos de pago completada")
+        print("Prueba funcional de gestión de métodos de pago completada")

@@ -355,7 +355,7 @@ class TestAuthFunctional:
         assert user is not None
         assert user.first_name == "Flow"
 
-        print("✅ Prueba funcional de flujo completo de registro completada")
+        print("Prueba funcional de flujo completo de registro completada")
 
     @patch('app.api.v1.auth.service.boto3.client')
     def test_password_recovery_flow(self, mock_boto_client, client):
@@ -390,7 +390,7 @@ class TestAuthFunctional:
         confirm_result = confirm_response.json()
         assert confirm_result["success"] is True
 
-        print("✅ Prueba funcional de recuperación de contraseña completada")
+        print("Prueba funcional de recuperación de contraseña completada")
 
     def test_password_hashing(self):
         """
@@ -410,4 +410,4 @@ class TestAuthFunctional:
         assert is_valid is True
         assert is_invalid is False
 
-        print("✅ Prueba funcional de hashing de contraseñas completada")
+        print("Prueba funcional de hashing de contraseñas completada")
