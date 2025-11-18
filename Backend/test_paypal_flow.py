@@ -177,7 +177,7 @@ async def add_products_to_cart(client, token):
     try:
         for product in products_to_add:
             response = await client.post(
-                f"{API_BASE_URL}/api/v1/cart/items",
+                f"{API_BASE_URL}/api/v1/cart/add",
                 json=product,
                 headers=headers
             )
