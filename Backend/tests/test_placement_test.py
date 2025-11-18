@@ -51,16 +51,17 @@ class TestPlacementTestServiceUnit:
         assert "extra_field" not in filtered
         assert "another_extra" not in filtered
 
-    @patch('app.api.v1.placement_test.service.joblib.load')
+    @patch('app.api.v1.placement_test.service.target_encoder')
+    @patch('app.api.v1.placement_test.service.encoders')
+    @patch('app.api.v1.placement_test.service.model')
     def test_predict_plan_bestrong(
-        self, mock_joblib_load
+        self, mock_model, mock_encoders, mock_target_encoder
     ):
         """
         Autor: Luis Flores
         Descripción: Prueba unitaria para predicción de plan BeStrong.
         """
         # Arrange
-        mock_model = Mock()
         mock_model.predict.return_value = [0]  # Return index, not plan name
 
         # Create proper mock encoders with transform method that just returns the value
@@ -73,7 +74,7 @@ class TestPlacementTestServiceUnit:
             encoder.transform = Mock(side_effect=transform_func)
             return encoder
 
-        mock_encoders = {
+        mock_encoders_dict = {
             "gender": create_encoder_mock({"M": 0, "F": 1}),
             "activity_type": create_encoder_mock({"Strength": 0, "Cardio": 1, "Mixed": 2, "Any": 3}),
             "activity_intensity": create_encoder_mock({"High": 0, "Moderate": 1, "Low": 2}),
@@ -82,11 +83,10 @@ class TestPlacementTestServiceUnit:
             "supplements": create_encoder_mock({"Yes": 0, "No": 1}),
             "goal_declared": create_encoder_mock({"Lose Weight": 0, "Maintain": 1, "Gain Muscle": 2})
         }
+        mock_encoders.__getitem__.side_effect = lambda key: mock_encoders_dict[key]
+        mock_encoders.get.side_effect = lambda key, default=None: mock_encoders_dict.get(key, default)
 
-        mock_target_encoder = Mock()
         mock_target_encoder.inverse_transform.return_value = ["BeStrong"]
-
-        mock_joblib_load.side_effect = [mock_model, mock_encoders, mock_target_encoder]
 
         input_data = {
             "age": 25,
@@ -182,6 +182,9 @@ class TestPlacementTestAPIIntegration:
     Descripción: Clase que agrupa las pruebas de integración de la API de placement test.
     """
 
+    @patch('app.api.v1.placement_test.service.target_encoder', new=Mock())
+    @patch('app.api.v1.placement_test.service.encoders', new=Mock())
+    @patch('app.api.v1.placement_test.service.model', new=Mock())
     @patch('app.api.v1.placement_test.service.predict_plan')
     def test_placement_test_endpoint(
         self, mock_predict, user_client, db, test_user
@@ -240,9 +243,11 @@ class TestPlacementTestFunctional:
     Descripción: Clase que agrupa las pruebas funcionales end-to-end de placement test.
     """
 
-    @patch('app.api.v1.placement_test.service.joblib.load')
+    @patch('app.api.v1.placement_test.service.target_encoder')
+    @patch('app.api.v1.placement_test.service.encoders')
+    @patch('app.api.v1.placement_test.service.model')
     def test_complete_placement_test_flow(
-        self, mock_joblib_load, db, test_user
+        self, mock_model, mock_encoders, mock_target_encoder, db, test_user
     ):
         """
         Autor: Luis Flores
@@ -250,7 +255,6 @@ class TestPlacementTestFunctional:
                      input, predicción ML, creación de FitnessProfile.
         """
         # Arrange - Mock del modelo ML
-        mock_model = Mock()
         mock_model.predict.return_value = [0]  # Return index, not plan name
 
         # Create proper mock encoders with transform method that just returns the value
@@ -262,7 +266,7 @@ class TestPlacementTestFunctional:
             encoder.transform = Mock(side_effect=transform_func)
             return encoder
 
-        mock_encoders = {
+        mock_encoders_dict = {
             "gender": create_encoder_mock({"M": 0, "F": 1}),
             "activity_type": create_encoder_mock({"Strength": 0, "Cardio": 1, "Mixed": 2, "Any": 3}),
             "activity_intensity": create_encoder_mock({"High": 0, "Moderate": 1, "Low": 2}),
@@ -271,11 +275,10 @@ class TestPlacementTestFunctional:
             "supplements": create_encoder_mock({"Yes": 0, "No": 1}),
             "goal_declared": create_encoder_mock({"Lose Weight": 0, "Maintain": 1, "Gain Muscle": 2})
         }
+        mock_encoders.__getitem__.side_effect = lambda key: mock_encoders_dict[key]
+        mock_encoders.get.side_effect = lambda key, default=None: mock_encoders_dict.get(key, default)
 
-        mock_target_encoder = Mock()
         mock_target_encoder.inverse_transform.return_value = ["BeStrong"]
-
-        mock_joblib_load.side_effect = [mock_model, mock_encoders, mock_target_encoder]
 
         # Paso 1: Preparar input del usuario
         user_input = {
