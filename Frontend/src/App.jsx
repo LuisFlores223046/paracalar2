@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "react-router-dom";
 
 // Componentes Globales
@@ -9,6 +9,10 @@ import Footer from "./Componentes/Footer";
 import CartSidebar from "./Componentes/CartSidebar";
 import AdminSidebar from "./Componentes/AdminSidebar";
 import { ProtectedRoute } from "./Componentes/ProtectedRoute";
+
+// Importar funciones del API para el carrito
+import { getCart, addItemToCart, updateCartItem, removeItemFromCart, clearCart as clearCartAPI } from "./utils/api";
+import { isAuthenticated } from "./utils/auth";
 
 // Páginas principales
 import Home from "./Home/HomePage";
@@ -60,6 +64,7 @@ import "./index.css";
 const MainLayout = () => {
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartLoading, setCartLoading] = useState(false);
   const location = useLocation();
 
   const isCartOrCheckoutPage =
@@ -69,39 +74,132 @@ const MainLayout = () => {
     if (!isCartOrCheckoutPage) setIsCartOpen(true);
   };
 
-  const addToCart = (product) => {
-    setCartItems((prev) => {
+  // Cargar carrito del backend al montar el componente
+  useEffect(() => {
+    loadCartFromBackend();
+  }, []);
+
+  const loadCartFromBackend = async () => {
+    // Solo cargar si el usuario está autenticado
+    if (!isAuthenticated()) {
+      setCartItems([]);
+      return;
+    }
+
+    try {
+      setCartLoading(true);
+      const data = await getCart();
+
+      // Transformar items del backend al formato esperado
+      const transformedItems = (data.items || []).map(item => ({
+        ...item.product,
+        cart_item_id: item.cart_item_id,
+        quantity: item.quantity,
+        id: item.product.product_id,
+        product_id: item.product.product_id,
+        name: item.product.name,
+        title: item.product.name,
+      }));
+
+      setCartItems(transformedItems);
+    } catch (err) {
+      console.error('Error al cargar carrito:', err);
+      // Si hay error, mantener carrito vacío o usar localStorage como fallback
+      setCartItems([]);
+    } finally {
+      setCartLoading(false);
+    }
+  };
+
+  const addToCart = async (product) => {
+    // Si no está autenticado, usar estado local temporal
+    if (!isAuthenticated()) {
+      setCartItems((prev) => {
+        const productId = product.product_id || product.id;
+        const exists = prev.find((item) => (item.product_id || item.id) === productId);
+        if (exists) {
+          return prev.map((item) =>
+            (item.product_id || item.id) === productId ? { ...item, quantity: item.quantity + 1 } : item
+          );
+        }
+        return [...prev, {
+          ...product,
+          id: productId,
+          product_id: productId,
+          title: product.name || product.title,
+          name: product.name || product.title,
+          quantity: 1
+        }];
+      });
+      return;
+    }
+
+    try {
       const productId = product.product_id || product.id;
-      const exists = prev.find((item) => (item.product_id || item.id) === productId);
-      if (exists) {
-        return prev.map((item) =>
-          (item.product_id || item.id) === productId ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      // Normalizar estructura para compatibilidad
-      return [...prev, { 
-        ...product,
-        id: productId,
-        product_id: productId,
-        title: product.name || product.title,
-        name: product.name || product.title,
-        quantity: 1 
-      }];
-    });
+      await addItemToCart(productId, 1);
+      await loadCartFromBackend(); // Recargar carrito actualizado
+    } catch (err) {
+      console.error('Error al agregar al carrito:', err);
+      alert('Error al agregar producto al carrito');
+    }
   };
 
-  const removeFromCart = (id) => {
-    setCartItems((prev) => prev.filter((item) => (item.product_id || item.id) !== id));
+  const removeFromCart = async (id) => {
+    // Buscar el cart_item_id correspondiente
+    const item = cartItems.find((item) => (item.product_id || item.id) === id);
+
+    if (!isAuthenticated() || !item?.cart_item_id) {
+      // Fallback a estado local
+      setCartItems((prev) => prev.filter((item) => (item.product_id || item.id) !== id));
+      return;
+    }
+
+    try {
+      await removeItemFromCart(item.cart_item_id);
+      await loadCartFromBackend(); // Recargar carrito actualizado
+    } catch (err) {
+      console.error('Error al eliminar del carrito:', err);
+      alert('Error al eliminar producto del carrito');
+    }
   };
 
-  const updateQuantity = (id, qty) => {
+  const updateQuantity = async (id, qty) => {
     if (qty <= 0) return removeFromCart(id);
-    setCartItems((prev) =>
-      prev.map((item) => ((item.product_id || item.id) === id ? { ...item, quantity: qty } : item))
-    );
+
+    // Buscar el cart_item_id correspondiente
+    const item = cartItems.find((item) => (item.product_id || item.id) === id);
+
+    if (!isAuthenticated() || !item?.cart_item_id) {
+      // Fallback a estado local
+      setCartItems((prev) =>
+        prev.map((item) => ((item.product_id || item.id) === id ? { ...item, quantity: qty } : item))
+      );
+      return;
+    }
+
+    try {
+      await updateCartItem(item.cart_item_id, qty);
+      await loadCartFromBackend(); // Recargar carrito actualizado
+    } catch (err) {
+      console.error('Error al actualizar cantidad:', err);
+      alert('Error al actualizar cantidad');
+    }
   };
 
-  const clearCart = () => setCartItems([]);
+  const clearCart = async () => {
+    if (!isAuthenticated()) {
+      setCartItems([]);
+      return;
+    }
+
+    try {
+      await clearCartAPI();
+      setCartItems([]);
+    } catch (err) {
+      console.error('Error al vaciar carrito:', err);
+      alert('Error al vaciar el carrito');
+    }
+  };
 
   return (
     <>
@@ -127,6 +225,8 @@ const MainLayout = () => {
           updateQuantity,
           setIsCartOpen,
           clearCart,
+          loadCartFromBackend, // Para que otros componentes puedan recargar el carrito
+          cartLoading,
         }}
       />
 

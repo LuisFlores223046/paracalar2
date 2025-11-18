@@ -5,9 +5,10 @@
  * Descripción: Muestra la vista detallada del carrito de compras. Permite gestionar la cantidad de artículos, removerlos, calcular el resumen del pedido (subtotal, envío) y muestra productos recomendados.
  */
 }
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useOutletContext, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { searchProducts } from "../utils/api";
 
 const TrashIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 hover:text-red-500 transition-colors"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -145,22 +146,46 @@ const summaryVariants = {
 
 
 export default function CartPage() {
-  const { cartItems, updateQuantity, removeFromCart, allProducts, addToCart } = useOutletContext();
-  
+  const { cartItems, updateQuantity, removeFromCart, addToCart } = useOutletContext();
+  const [recommendations, setRecommendations] = useState([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(true);
+
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const shipping = subtotal > 2000 ? 0 : 150; 
+  const shipping = subtotal > 2000 ? 0 : 150;
   const discount = 0;
   const total = subtotal + shipping - discount;
 
-  const recommendations = allProducts
-    .filter(p => {
-      const pId = p.product_id || p.id;
-      return !cartItems.find(item => {
-        const itemId = item.product_id || item.id;
-        return itemId === pId;
-      });
-    })
-    .slice(0, 4);
+  // Cargar recomendaciones del backend
+  useEffect(() => {
+    const loadRecommendations = async () => {
+      try {
+        setLoadingRecommendations(true);
+        const response = await searchProducts({
+          page: 1,
+          limit: 4,
+          is_active: true
+        });
+
+        // Filtrar productos que ya están en el carrito
+        const filtered = (response.items || []).filter(p => {
+          const pId = p.product_id || p.id;
+          return !cartItems.find(item => {
+            const itemId = item.product_id || item.id;
+            return itemId === pId;
+          });
+        });
+
+        setRecommendations(filtered.slice(0, 4));
+      } catch (err) {
+        console.error('Error al cargar recomendaciones:', err);
+        setRecommendations([]);
+      } finally {
+        setLoadingRecommendations(false);
+      }
+    };
+
+    loadRecommendations();
+  }, [cartItems]); // Recargar cuando cambie el carrito
 
   return (
     <motion.div 
@@ -334,28 +359,42 @@ export default function CartPage() {
         {/* --- SECCIÓN INFERIOR: COMPLEMENTA TU PEDIDO --- */}
         <div className="mt-12 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <h2 className="text-xl font-extrabold mb-6">Complementa tu pedido</h2>
-          
-          <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"
-            variants={listVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-          >
-            {/* --- INICIO DE LA MODIFICACION --- */}
-            {recommendations.map(product => (
-              <ProductCard
-                key={product.product_id || product.id}
-                product={product}
-                onAddToCart={addToCart}
-              />
-            ))}
-            {/* --- FIN DE LA MODIFICACION --- */}
 
-            {recommendations.length === 0 && (
-              <p className="text-gray-500 col-span-4 text-center">¡Ya tienes todo lo necesario!</p>
-            )}
-          </motion.div>
+          {loadingRecommendations ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <span className="ml-3 text-gray-600">Cargando recomendaciones...</span>
+              </div>
+            </div>
+          ) : (
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"
+              variants={listVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              {recommendations.map(product => (
+                <ProductCard
+                  key={product.product_id || product.id}
+                  product={product}
+                  onAddToCart={addToCart}
+                />
+              ))}
+
+              {recommendations.length === 0 && (
+                <div className="col-span-4 text-center py-8">
+                  <p className="text-gray-500 text-lg">¡Ya tienes todo lo necesario!</p>
+                  <Link to="/Productos" className="text-blue-600 hover:underline mt-2 inline-block">
+                    Ver más productos
+                  </Link>
+                </div>
+              )}
+            </motion.div>
+          )}
         </div>
 
       </div>
