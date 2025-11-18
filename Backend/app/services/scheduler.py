@@ -214,18 +214,7 @@ def stop_scheduler():
 
 def get_scheduler_status():
     """
-    Autor: Lizbeth Barajas
-
-    Descripción:
-        Devuelve información sobre el estado actual del scheduler,
-        incluyendo si está corriendo y los jobs registrados junto con
-        su próxima fecha de ejecución.
-
-    Parámetros:
-        Ninguno
-
-    Retorna:
-        dict: Información del estado del scheduler y los jobs.
+    Devuelve el estado actual del scheduler y sus jobs - Para monitoreo
     """
     global _scheduler
     

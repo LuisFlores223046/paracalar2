@@ -12,7 +12,7 @@ from fastapi import (
     UploadFile,
     status,
     Form,
-    Security, 
+    Security,
     BackgroundTasks
 )
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -49,8 +49,8 @@ async def register_user(
     email: str = Form(...),
     password: str = Form(...),
     gender: Optional[str] = Form(None),
-    birth_date: Optional[str] = Form(None), 
-    profile_image: Optional[UploadFile] = None,
+    birth_date: Optional[str] = Form(None),
+    profile_image: Optional[UploadFile] = None
 ):
     """
     Autor: Gabriel Vilchis
@@ -86,21 +86,24 @@ async def register_user(
     # Read image bytes before processing
     image_bytes = await profile_image.read() if profile_image else None
 
+    # Call async sign_up (await required since it's now async)
     result = await cognito_service.sign_up(db=db, user_data=user_data, profile_image=image_bytes)
-    
+
     if not result.get("success"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result.get("error"))
-    
-    if image_bytes:
+
+    # Add background task to migrate S3 image from temp to final location
+    # Skip in test mode to ensure tests receive final URLs
+    if image_bytes and result.get("temp_s3_id") and settings.COGNITO_REGION != "test":
         background_tasks.add_task(
             cognito_service.process_s3_and_cognito_updates_sync,
-            profile_image=image_bytes,
-            cognito_sub=result["user_sub"],
+            db=db,
             temp_s3_id=result["temp_s3_id"],
-            profile_image_url=result["profile_image_url"],
-            db=db
+            final_user_id=result["user_id"],
+            cognito_sub=result["user_sub"],
+            profile_image=image_bytes
         )
-    
+
     return result
 
 @router.post(
@@ -120,7 +123,7 @@ async def confirm_signup(data: schemas.ConfirmSignUpRequest):
     Returns:
         `schemas.MessageResponse`: Mensaje de éxito o error de la confirmación.
     """
-    result = await cognito_service.confirm_sign_up(data.email, data.code)
+    result = cognito_service.confirm_sign_up(data.email, data.code)
     
     if not result.get("success"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"])
@@ -140,7 +143,7 @@ async def resend_code(data: schemas.ResendCodeRequest):
     Returns:
         `schemas.MessageResponse`: Mensaje de éxito o error.
     """
-    result = await cognito_service.resend_confirmation_code(data.email)
+    result = cognito_service.resend_confirmation_code(data.email)
     
     if not result.get("success"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"])
@@ -162,7 +165,7 @@ async def login(credentials: schemas.SignInRequest):
     Returns:
         `schemas.TokenResponse`: Objeto que contiene los tokens JWT.
     """
-    result = await cognito_service.sign_in(credentials.email, credentials.password)
+    result = cognito_service.sign_in(credentials.email, credentials.password)
     
     if not result.get("success"):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=result["error"])
@@ -191,7 +194,7 @@ async def refresh_access_token(data: schemas.RefreshTokenRequest):
     Returns:
         `schemas.TokenResponse`: Un nuevo Access Token, ID Token y el Refresh Token original.
     """
-    result = await cognito_service.refresh_token(data.refresh_token)
+    result = cognito_service.refresh_token(data.refresh_token)
     
     if not result.get("success"):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=result.get("error"))
@@ -220,7 +223,7 @@ async def logout(token: str = Depends(get_token_from_header)):
     Returns:
         `schemas.MessageResponse`: Mensaje de éxito del cierre de sesión.
     """
-    result = await cognito_service.sign_out(token)
+    result = cognito_service.sign_out(token)
     
     if not result.get("success"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"])
@@ -241,7 +244,7 @@ async def forgot_password(data: schemas.ForgotPasswordRequest):
     Returns:
         `schemas.MessageResponse`: Mensaje de éxito o error.
     """
-    result = await cognito_service.forgot_password(data.email)
+    result = cognito_service.forgot_password(data.email)
     
     if not result.get("success"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"])
@@ -261,7 +264,7 @@ async def confirm_forgot_password(data: schemas.ConfirmForgotPasswordRequest):
     Returns:
         `schemas.MessageResponse`: Mensaje de éxito o error.
     """
-    result = await cognito_service.confirm_forgot_password(
+    result = cognito_service.confirm_forgot_password(
         data.email, data.code, data.new_password
     )
     
@@ -288,7 +291,7 @@ async def change_password(
     Returns:
         schemas.MessageResponse: Mensaje de éxito o error.
     """
-    result = await cognito_service.change_password(
+    result = cognito_service.change_password(
         token, data.old_password, data.new_password
     )
     

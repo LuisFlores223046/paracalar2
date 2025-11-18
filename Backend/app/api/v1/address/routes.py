@@ -26,6 +26,7 @@ async def get_all_addresses(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    
     """
     Autor: Lizbeth Barajas
 
@@ -54,12 +55,14 @@ async def get_all_addresses(
     
     return result
 
+"""Verifica el token JWT y devuelve el payload del usuario"""
 @router.get("/{address_id}", response_model=schemas.AddressResponse, status_code=status.HTTP_200_OK)
 async def get_address(
     address_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    
     """
     Autor: Lizbeth Barajas
 
@@ -88,12 +91,16 @@ async def get_address(
     
     return result["address"]
 
+"""
+Crea una nueva direccion
+"""
 @router.post("", response_model=schemas.AddressResponse, status_code=status.HTTP_201_CREATED)
 async def create_address(
     address_data: schemas.CreateAddressRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    
     """
     Autor: Lizbeth Barajas
 
@@ -136,6 +143,9 @@ async def create_address(
     
     return result["address"]
 
+"""
+Actualiza una direccion existente
+"""
 @router.put("/{address_id}", response_model=schemas.AddressResponse, status_code=status.HTTP_200_OK)
 async def update_address(
     address_id: int,
@@ -143,6 +153,7 @@ async def update_address(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    
     """
     Autor: Lizbeth Barajas
 
@@ -187,12 +198,16 @@ async def update_address(
     
     return result["address"]
 
+"""
+Elimina una direccion
+"""
 @router.delete("/{address_id}", response_model=schemas.MessageResponse, status_code=status.HTTP_200_OK)
 async def delete_address(
     address_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    
     """
     Autor: Lizbeth Barajas
 
@@ -221,12 +236,16 @@ async def delete_address(
     
     return result
 
+"""
+Establece una direccion como predeterminada
+"""
 @router.patch("/{address_id}/set-default", response_model=schemas.AddressResponse, status_code=status.HTTP_200_OK)
 async def set_default_address(
     address_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    
     """
     Autor: Lizbeth Barajas
 

@@ -250,19 +250,7 @@ class AddressService:
     
     def delete_address(self, db: Session, cognito_sub: str, address_id: int) -> Dict:
         """
-        Autor: Lizbeth Barajas
-
-        Descripción:
-            Elimina una dirección existente que pertenezca al usuario autenticado.
-            Verifica que la dirección exista antes de eliminarla.
-
-        Parámetros:
-            db (Session): Sesión de base de datos.
-            cognito_sub (str): Identificador del usuario.
-            address_id (int): ID de la dirección a eliminar.
-
-        Retorna:
-            Dict: Diccionario con éxito y mensaje, o error si la dirección no existe.
+        Borra una direccion
         """
         try:
             user = db.query(User).filter(User.cognito_sub == cognito_sub).first()
@@ -290,19 +278,7 @@ class AddressService:
     
     def set_default_address(self, db: Session, cognito_sub: str, address_id: int) -> Dict:
         """
-        Autor: Lizbeth Barajas
-
-        Descripción:
-            Establece una dirección del usuario como la dirección predeterminada.
-            Asegura que cualquier otra dirección pierda el estado de predeterminada.
-
-        Parámetros:
-            db (Session): Sesión de base de datos.
-            cognito_sub (str): Identificador del usuario.
-            address_id (int): ID de la dirección que será marcada como predeterminada.
-
-        Retorna:
-            Dict: Diccionario con éxito, mensaje y la dirección actualizada, o error.
+        Hace a una direccion la seleccionada por defecto
         """
         try:
             user = db.query(User).filter(User.cognito_sub == cognito_sub).first()
