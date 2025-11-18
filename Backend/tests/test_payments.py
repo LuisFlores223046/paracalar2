@@ -156,18 +156,20 @@ class TestPaymentServiceUnit:
             test_cart_with_items (ShoppingCart): Carrito con items.
         """
         # Arrange
-        mock_stripe_service.create_checkout_session = AsyncMock(return_value={
+        mock_stripe_service.create_checkout_session.return_value = {
             "success": True,
             "session_id": "cs_test_123",
             "checkout_url": "https://checkout.stripe.com/test"
-        })
+        }
 
         # Act
         result = await service.create_stripe_checkout_session(
             db, test_user.cognito_sub, test_address.address_id
         )
 
-        # Assert
+        # Assert - Debug if fails
+        if not result.get("success"):
+            print(f"Result: {result}")
         assert result["success"] is True
         assert "stripe_session_id" in result or "stripe_checkout_url" in result
 
@@ -188,11 +190,22 @@ class TestPaymentServiceUnit:
             test_address (Address): Dirección de prueba.
             test_cart_with_items (ShoppingCart): Carrito con items.
         """
-        # Arrange
+        # Arrange - Mock PayPal API response structure
         mock_paypal_service.create_order = AsyncMock(return_value={
-            "success": True,
-            "order_id": "PAYPAL123",
-            "approval_url": "https://paypal.com/checkout/PAYPAL123"
+            "id": "PAYPAL123",
+            "status": "CREATED",
+            "links": [
+                {
+                    "href": "https://api.paypal.com/v2/checkout/orders/PAYPAL123",
+                    "rel": "self",
+                    "method": "GET"
+                },
+                {
+                    "href": "https://paypal.com/checkout/PAYPAL123",
+                    "rel": "approve",
+                    "method": "GET"
+                }
+            ]
         })
 
         # Act
@@ -200,7 +213,9 @@ class TestPaymentServiceUnit:
             db, test_user.cognito_sub, test_address.address_id
         )
 
-        # Assert
+        # Assert - Debug if fails
+        if not result.get("success"):
+            print(f"Result: {result}")
         assert result["success"] is True
         assert "paypal_order_id" in result
         assert "paypal_approval_url" in result
@@ -333,11 +348,11 @@ class TestPaymentFunctional:
         summary = summary_result["summary"]
 
         # Paso 3: Crear sesión de Stripe
-        mock_stripe_service.create_checkout_session = AsyncMock(return_value={
+        mock_stripe_service.create_checkout_session.return_value = {
             "success": True,
             "session_id": "cs_test_123",
             "checkout_url": "https://checkout.stripe.com/test"
-        })
+        }
 
         session_result = await service.create_stripe_checkout_session(
             db, test_user.cognito_sub, test_address.address_id
@@ -345,6 +360,32 @@ class TestPaymentFunctional:
         assert session_result["success"] is True
 
         # Paso 4: Simular webhook de Stripe (pago exitoso)
+        # Mock Stripe session retrieval
+        mock_stripe_service.retrieve_session.return_value = {
+            "id": "cs_test_123",
+            "metadata": {
+                "user_id": str(test_user.user_id),
+                "address_id": str(test_address.address_id),
+                "coupon_code": None,
+                "subscription_id": None
+            }
+        }
+
+        # Mock payment method retrieval
+        mock_stripe_service.get_payment_method.return_value = {
+            "success": True,
+            "payment_method": {
+                "card": {
+                    "last4": "4242",
+                    "exp_month": 12,
+                    "exp_year": 2025,
+                    "brand": "visa"
+                },
+                "type": "card"
+            }
+        }
+
+        # Mock order creation
         mock_order = Order(
             user_id=test_user.user_id,
             address_id=test_address.address_id,
@@ -362,9 +403,13 @@ class TestPaymentFunctional:
             "points_earned": summary["points_to_earn"]
         })
 
-        webhook_result = await service.process_stripe_webhook(
-            db, "cs_test_123", "pi_test_456"
-        )
+        # Mock Stripe PaymentIntent
+        with patch('app.api.v1.payments.service.stripe.PaymentIntent') as mock_pi:
+            mock_pi.retrieve.return_value = Mock(payment_method="pm_test_123")
+
+            webhook_result = await service.process_stripe_webhook(
+                db, "cs_test_123", "pi_test_456"
+            )
 
         # Verificar que se llamó al servicio de órdenes
         assert mock_order_service.create_order_from_cart.called
