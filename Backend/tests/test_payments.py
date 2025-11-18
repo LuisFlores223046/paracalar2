@@ -89,6 +89,16 @@ class TestPaymentServiceUnit:
             test_cart_with_items (ShoppingCart): Carrito con items.
             test_coupon (Coupon): Cupón de prueba.
         """
+        # Arrange: Link coupon to user
+        from app.models.user_coupon import UserCoupon
+
+        user_coupon = UserCoupon(
+            user_id=test_user.user_id,
+            coupon_id=test_coupon.coupon_id
+        )
+        db.add(user_coupon)
+        db.commit()
+
         # Act
         result = service.calculate_checkout_summary(
             db, test_user.user_id, test_address.address_id,
@@ -221,7 +231,7 @@ class TestPaymentAPIIntegration:
         payload = {"address_id": test_address.address_id}
 
         # Act
-        response = user_client.post("/api/v1/payments/summary", json=payload)
+        response = user_client.post("/api/v1/checkout/summary", json=payload)
 
         # Assert
         assert response.status_code == 200
@@ -244,14 +254,23 @@ class TestPaymentAPIIntegration:
             test_cart_with_items (ShoppingCart): Carrito con items.
             test_coupon (Coupon): Cupón de prueba.
         """
-        # Arrange
+        # Arrange: Link coupon to user
+        from app.models.user_coupon import UserCoupon
+
+        user_coupon = UserCoupon(
+            user_id=test_user.user_id,
+            coupon_id=test_coupon.coupon_id
+        )
+        db.add(user_coupon)
+        db.commit()
+
         payload = {
             "address_id": test_address.address_id,
             "coupon_code": "TEST10"
         }
 
         # Act
-        response = user_client.post("/api/v1/payments/summary", json=payload)
+        response = user_client.post("/api/v1/checkout/summary", json=payload)
 
         # Assert
         assert response.status_code == 200
