@@ -110,8 +110,14 @@ class TestCognitoServiceUnit:
         from botocore.exceptions import ClientError
 
         mock_cognito = MagicMock()
+
+        # Mock exceptions attribute
+        NotAuthorizedException = type('NotAuthorizedException', (Exception,), {})
+        mock_cognito.exceptions.NotAuthorizedException = NotAuthorizedException
+
+        # Configure side effect
         error_response = {'Error': {'Code': 'NotAuthorizedException', 'Message': 'Incorrect username or password'}}
-        mock_cognito.initiate_auth.side_effect = ClientError(error_response, 'InitiateAuth')
+        mock_cognito.initiate_auth.side_effect = NotAuthorizedException('Incorrect username or password')
         mock_boto_client.return_value = mock_cognito
 
         service = CognitoService()
@@ -212,22 +218,25 @@ class TestAuthAPIIntegration:
     Descripción: Clase que agrupa las pruebas de integración de la API de autenticación.
     """
 
-    @patch('app.api.v1.auth.service.boto3.client')
-    def test_signup_endpoint(self, mock_boto_client, client, db):
+    @patch('app.services.s3_service.S3Service.upload_profile_img')
+    @patch('app.api.v1.auth.service.cognito_service.sign_up')
+    def test_signup_endpoint(self, mock_sign_up, mock_s3_upload, client, db):
         """
         Autor: Luis Flores
         Descripción: Prueba de integración para endpoint de registro.
         Parámetros:
-            mock_boto_client: Mock del cliente de boto3.
+            mock_sign_up: Mock del método sign_up del servicio.
+            mock_s3_upload: Mock del método upload de S3.
             client (TestClient): Cliente HTTP de prueba.
             db (Session): Sesión de base de datos.
         """
         # Arrange
-        mock_cognito = MagicMock()
-        mock_cognito.sign_up.return_value = {
-            "UserSub": "test-sub-456"
+        mock_sign_up.return_value = {
+            "success": True,
+            "user_sub": "test-sub-456",
+            "message": "Usuario registrado exitosamente"
         }
-        mock_boto_client.return_value = mock_cognito
+        mock_s3_upload.return_value = "https://s3.amazonaws.com/bucket/test-image.jpg"
 
         signup_data = {
             "email": "integration@test.com",
@@ -239,10 +248,12 @@ class TestAuthAPIIntegration:
         }
 
         # Act
-        with patch('app.api.v1.auth.service.S3Service'):
-            response = client.post("/api/v1/auth/signup", json=signup_data)
+        response = client.post("/api/v1/auth/signup", data=signup_data)
 
-        # Assert
+        # Assert - Debug if fails
+        if response.status_code not in [200, 201]:
+            print(f"Response status: {response.status_code}")
+            print(f"Response body: {response.json()}")
         assert response.status_code in [200, 201]
         data = response.json()
         assert data["success"] is True
