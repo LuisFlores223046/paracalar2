@@ -212,8 +212,8 @@ async def get_checkout_summary(client, token, address_id):
 
     headers = {"Authorization": f"Bearer {token}"}
     summary_data = {
-        "address_id": address_id,
-        "coupon_code": "WELCOME10"  # Cupón de $10
+        "address_id": address_id
+        # Sin cupón - los cupones deben estar asignados al usuario primero
     }
 
     try:
@@ -247,8 +247,8 @@ async def initialize_paypal_checkout(client, token, address_id):
 
     headers = {"Authorization": f"Bearer {token}"}
     paypal_data = {
-        "address_id": address_id,
-        "coupon_code": "WELCOME10"
+        "address_id": address_id
+        # Sin cupón - los cupones deben estar asignados al usuario primero
     }
 
     try:
@@ -300,8 +300,8 @@ async def capture_paypal_payment(client, token, paypal_order_id, address_id):
     headers = {"Authorization": f"Bearer {token}"}
     capture_data = {
         "paypal_order_id": paypal_order_id,
-        "address_id": address_id,
-        "coupon_code": "WELCOME10"
+        "address_id": address_id
+        # Sin cupón - los cupones deben estar asignados al usuario primero
     }
 
     try:
