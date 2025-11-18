@@ -236,8 +236,12 @@ class TestPaymentAPIIntegration:
         # Assert
         assert response.status_code == 200
         data = response.json()
-        assert "summary" in data
-        assert data["summary"]["subtotal"] > 0
+        # El endpoint devuelve CheckoutSummary directamente, no wrapped en "summary"
+        assert "subtotal" in data
+        assert float(data["subtotal"]) > 0
+        assert "shipping_cost" in data
+        assert "total_amount" in data
+        assert "items_count" in data
 
     def test_checkout_summary_with_coupon_endpoint(
         self, user_client, db, test_user, test_address,
@@ -275,7 +279,10 @@ class TestPaymentAPIIntegration:
         # Assert
         assert response.status_code == 200
         data = response.json()
-        assert data["summary"]["discount_amount"] > 0
+        # El endpoint devuelve CheckoutSummary directamente, no wrapped en "summary"
+        assert "discount_amount" in data
+        assert float(data["discount_amount"]) > 0
+        assert float(data["total_amount"]) < float(data["subtotal"]) + float(data["shipping_cost"])
 
 
 # ==================== PRUEBAS FUNCIONALES ====================
@@ -392,10 +399,14 @@ class TestPaymentFunctional:
         db.flush()
 
         # Paso 2: Asignar tier al usuario
+        from datetime import date
+
         loyalty = UserLoyalty(
             user_id=test_user.user_id,
+            tier_id=tier.tier_id,
             total_points=600,
-            tier_level=2
+            tier_achieved_date=date.today(),
+            last_points_update=date.today()
         )
         db.add(loyalty)
         db.commit()
