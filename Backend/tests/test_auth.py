@@ -4,7 +4,7 @@
 #             unitarias, integrales y funcionales para operaciones de auth con Cognito.
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from sqlalchemy.orm import Session
 from datetime import date
 from app.api.v1.auth.service import CognitoService
@@ -50,7 +50,15 @@ class TestCognitoServiceUnit:
         )
 
         # Act
-        with patch('app.api.v1.auth.service.S3Service') as mock_s3:
+        # Mock S3Service instance with async upload_profile_img method
+        mock_s3_instance = MagicMock()
+        mock_s3_instance.upload_profile_img = AsyncMock(return_value={
+            "success": True,
+            "file_url": "https://s3.amazonaws.com/bucket/test-image.jpg",
+            "file_name": "profile_images/123/picture.jpg"
+        })
+
+        with patch('app.api.v1.auth.service.S3Service', return_value=mock_s3_instance):
             result = await service.sign_up(db, user_data, profile_image=None)
 
         # Assert
