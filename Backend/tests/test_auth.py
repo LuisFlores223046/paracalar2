@@ -84,13 +84,12 @@ class TestCognitoServiceUnit:
         mock_boto_client.return_value = mock_cognito
 
         service = CognitoService()
-        credentials = schemas.SignInRequest(
+
+        # Act
+        result = service.sign_in(
             email="test@example.com",
             password="Test123!@#"
         )
-
-        # Act
-        result = service.sign_in(credentials)
 
         # Assert
         assert result["success"] is True
@@ -108,18 +107,20 @@ class TestCognitoServiceUnit:
             mock_boto_client: Mock del cliente de boto3.
         """
         # Arrange
+        from botocore.exceptions import ClientError
+
         mock_cognito = MagicMock()
-        mock_cognito.initiate_auth.side_effect = Exception("NotAuthorizedException")
+        error_response = {'Error': {'Code': 'NotAuthorizedException', 'Message': 'Incorrect username or password'}}
+        mock_cognito.initiate_auth.side_effect = ClientError(error_response, 'InitiateAuth')
         mock_boto_client.return_value = mock_cognito
 
         service = CognitoService()
-        credentials = schemas.SignInRequest(
+
+        # Act
+        result = service.sign_in(
             email="test@example.com",
             password="WrongPassword123!"
         )
-
-        # Act
-        result = service.sign_in(credentials)
 
         # Assert
         assert result["success"] is False
@@ -139,13 +140,12 @@ class TestCognitoServiceUnit:
         mock_boto_client.return_value = mock_cognito
 
         service = CognitoService()
-        confirm_data = schemas.ConfirmSignUpRequest(
+
+        # Act
+        result = service.confirm_sign_up(
             email="test@example.com",
             code="123456"
         )
-
-        # Act
-        result = service.confirm_sign_up(confirm_data)
 
         # Assert
         assert result["success"] is True
