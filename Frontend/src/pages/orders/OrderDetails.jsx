@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { orderService } from '../../services/order.service'
+import { shippingService } from '../../services/shipping.service'
+import { Package, Truck, CheckCircle, MapPin } from 'lucide-react'
 import Loading from '../../components/Loading'
 
 export default function OrderDetails() {
   const { orderId } = useParams()
   const [order, setOrder] = useState(null)
+  const [tracking, setTracking] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchOrder()
+    fetchTracking()
   }, [orderId])
 
   const fetchOrder = async () => {
@@ -20,6 +24,15 @@ export default function OrderDetails() {
       console.error('Failed to load order')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchTracking = async () => {
+    try {
+      const data = await shippingService.getTracking(orderId)
+      setTracking(data)
+    } catch (error) {
+      console.error('Failed to load tracking info')
     }
   }
 
@@ -37,11 +50,64 @@ export default function OrderDetails() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
+          {/* Shipping Tracking */}
+          {tracking && order.order_status !== 'PENDING' && order.order_status !== 'CANCELLED' && (
+            <div className="card">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Truck size={20} />
+                Shipping Tracking
+              </h2>
+
+              {order.tracking_number && (
+                <p className="text-sm text-gray-600 mb-4">
+                  Tracking Number: <span className="font-semibold">{order.tracking_number}</span>
+                </p>
+              )}
+
+              <div className="space-y-4">
+                {tracking.events?.map((event, index) => (
+                  <div key={index} className="flex gap-4">
+                    <div className="flex-shrink-0">
+                      {index === 0 ? (
+                        <CheckCircle className="text-green-600" size={24} />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-gray-300 bg-white" />
+                      )}
+                    </div>
+                    <div className="flex-1 pb-4 border-b last:border-0">
+                      <p className="font-semibold">{event.status}</p>
+                      <p className="text-sm text-gray-600">{event.location}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(event.timestamp).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {tracking.estimated_delivery && (
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg flex items-center gap-3">
+                  <MapPin className="text-blue-600" size={20} />
+                  <div>
+                    <p className="text-sm text-gray-600">Estimated Delivery</p>
+                    <p className="font-semibold">
+                      {new Date(tracking.estimated_delivery).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Order Items */}
           <div className="card">
-            <h2 className="text-xl font-bold mb-4">Order Items</h2>
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Package size={20} />
+              Order Items
+            </h2>
             <div className="space-y-4">
               {order.order_items?.map((item) => (
-                <div key={item.order_item_id} className="flex gap-4 border-b pb-4">
+                <div key={item.order_item_id} className="flex gap-4 border-b pb-4 last:border-0">
                   <div className="flex-1">
                     <p className="font-semibold">{item.product?.name}</p>
                     <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
