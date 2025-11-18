@@ -22,8 +22,9 @@ class TestCognitoServiceUnit:
     Descripción: Clase que agrupa las pruebas unitarias del servicio de autenticación.
     """
 
+    @pytest.mark.asyncio
     @patch('app.api.v1.auth.service.boto3.client')
-    def test_sign_up_success(self, mock_boto_client, db: Session):
+    async def test_sign_up_success(self, mock_boto_client, db: Session):
         """
         Autor: Luis Flores
         Descripción: Prueba unitaria que verifica el registro exitoso de un usuario.
@@ -50,7 +51,7 @@ class TestCognitoServiceUnit:
 
         # Act
         with patch('app.api.v1.auth.service.S3Service') as mock_s3:
-            result = service.sign_up(db, user_data, profile_image=None)
+            result = await service.sign_up(db, user_data, profile_image=None)
 
         # Assert
         assert result["success"] is True
@@ -171,10 +172,9 @@ class TestCognitoServiceUnit:
         mock_boto_client.return_value = mock_cognito
 
         service = CognitoService()
-        request_data = schemas.ForgotPasswordRequest(email="test@example.com")
 
         # Act
-        result = service.forgot_password(request_data)
+        result = service.forgot_password(email="test@example.com")
 
         # Assert
         assert result["success"] is True
@@ -200,10 +200,9 @@ class TestCognitoServiceUnit:
         mock_boto_client.return_value = mock_cognito
 
         service = CognitoService()
-        refresh_data = schemas.RefreshTokenRequest(refresh_token="old-refresh-token")
 
         # Act
-        result = service.refresh_token(refresh_data)
+        result = service.refresh_token(refresh_token="old-refresh-token")
 
         # Assert
         assert result["success"] is True
