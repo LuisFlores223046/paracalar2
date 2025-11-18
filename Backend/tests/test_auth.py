@@ -258,26 +258,23 @@ class TestAuthAPIIntegration:
         data = response.json()
         assert data["success"] is True
 
-    @patch('app.api.v1.auth.service.boto3.client')
-    def test_signin_endpoint(self, mock_boto_client, client):
+    @patch('app.api.v1.auth.service.cognito_service.sign_in')
+    def test_signin_endpoint(self, mock_sign_in, client):
         """
         Autor: Luis Flores
         Descripción: Prueba de integración para endpoint de login.
         Parámetros:
-            mock_boto_client: Mock del cliente de boto3.
+            mock_sign_in: Mock del método sign_in del servicio.
             client (TestClient): Cliente HTTP de prueba.
         """
         # Arrange
-        mock_cognito = MagicMock()
-        mock_cognito.initiate_auth.return_value = {
-            "AuthenticationResult": {
-                "AccessToken": "test-access-token",
-                "IdToken": "test-id-token",
-                "RefreshToken": "test-refresh-token",
-                "ExpiresIn": 3600
-            }
+        mock_sign_in.return_value = {
+            "success": True,
+            "access_token": "test-access-token",
+            "id_token": "test-id-token",
+            "refresh_token": "test-refresh-token",
+            "expires_in": 3600
         }
-        mock_boto_client.return_value = mock_cognito
 
         signin_data = {
             "email": "test@example.com",
@@ -285,7 +282,7 @@ class TestAuthAPIIntegration:
         }
 
         # Act
-        response = client.post("/api/v1/auth/signin", json=signin_data)
+        response = client.post("/api/v1/auth/login", json=signin_data)
 
         # Assert
         assert response.status_code == 200
