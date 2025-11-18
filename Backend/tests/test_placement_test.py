@@ -182,10 +182,7 @@ class TestPlacementTestAPIIntegration:
     Descripción: Clase que agrupa las pruebas de integración de la API de placement test.
     """
 
-    @patch('app.api.v1.placement_test.service.target_encoder', new=Mock())
-    @patch('app.api.v1.placement_test.service.encoders', new=Mock())
-    @patch('app.api.v1.placement_test.service.model', new=Mock())
-    @patch('app.api.v1.placement_test.service.predict_plan')
+    @patch('app.api.v1.placement_test.routes.predict_plan')
     def test_placement_test_endpoint(
         self, mock_predict, user_client, db, test_user
     ):
