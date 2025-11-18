@@ -67,21 +67,21 @@ class S3Service:
             # Lógica para S3
             file_ext = img_format.lower()
             # corregi el nombre del archivo de la imagen aqui
-            # Ahora en S3 sale el 1 del usuario como su carpeta, y posteriormente su imagen con el formato de imagen 
-            file_name = f"profile_images/{user_id}/picture.{file_ext}" 
+            # Ahora en S3 sale el 1 del usuario como su carpeta, y posteriormente su imagen con el formato de imagen
+            file_name = f"profile_images/{user_id}/picture.{file_ext}"
 
             content_types = {
                 'jpeg': 'image/jpeg',
                 'png': 'image/png',
                 'webp': 'image/webp'
             }
-            content_type = content_types.get(file_ext, 'image/jpeg') 
+            content_type = content_types.get(file_ext, 'image/jpeg')
 
             # Subir el archivo
             self.s3_client.put_object(
                 Bucket=self.bucket_name,
                 Key=file_name,
-                Body=file_content, 
+                Body=file_content,
                 ContentType=content_type,
                 Metadata={'user_id': user_id}
             )
@@ -144,20 +144,20 @@ class S3Service:
 
             # Lógica para S3
             file_ext = img_format.lower()
-            file_name = f"product_images/{product_id}/picture.{file_ext}" # de igual forma aqui 
+            file_name = f"product_images/{product_id}/picture.{file_ext}" # de igual forma aqui
 
             content_types = {
                 'jpeg': 'image/jpeg',
                 'png': 'image/png',
                 'webp': 'image/webp'
             }
-            content_type = content_types.get(file_ext, 'image/jpeg') 
+            content_type = content_types.get(file_ext, 'image/jpeg')
 
             # Subir el archivo
             self.s3_client.put_object(
                 Bucket=self.bucket_name,
                 Key=file_name,
-                Body=file_content, 
+                Body=file_content,
                 ContentType=content_type,
                 Metadata={'product_id': product_id}
             )
@@ -193,7 +193,7 @@ class S3Service:
         try:
             # busca el patron del sub de cognito en las carpetas
             key_match = re.search(r"profile_images/[^/?]+/[^/?]+", old_url)
-            
+
             if not key_match:
                 return {"success": True, "message": "URL antigua no válida o vacía, no se requiere eliminación."}
 
@@ -203,7 +203,7 @@ class S3Service:
                 Bucket=self.bucket_name,
                 Key=s3_key_to_delete
             )
-            
+
             return {"success": True, "message": f"Objeto eliminado: {s3_key_to_delete}"}
             
         except ClientError as e:
