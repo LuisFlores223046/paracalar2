@@ -52,21 +52,21 @@ async def create_test_user(client):
     """Crea un usuario de prueba"""
     print_step(1, "Crear Usuario de Prueba")
 
-    # Datos del usuario
+    # Datos del usuario como formulario (multipart/form-data)
     user_data = {
         "email": "testpaypal@befit.com",
         "password": "TestPayPal123!",
         "first_name": "Test",
         "last_name": "PayPal",
         "gender": "M",
-        "date_of_birth": "1990-01-01"
+        "birth_date": "1990-01-01"
     }
 
     try:
         # Intentar registrar (puede fallar si ya existe)
         response = await client.post(
             f"{API_BASE_URL}/api/v1/auth/signup",
-            json=user_data
+            data=user_data  # Usar 'data' en vez de 'json' para form-data
         )
 
         if response.status_code == 201:
@@ -76,10 +76,15 @@ async def create_test_user(client):
             input("Presiona ENTER después de confirmar el usuario en Cognito...")
             return True
         elif response.status_code == 400:
-            print_info("Usuario ya existe, intentando login...")
-            return True
+            error_detail = response.json().get("detail", "")
+            if "already exists" in error_detail.lower() or "user already exist" in error_detail.lower():
+                print_info("Usuario ya existe, continuando con login...")
+                return True
+            else:
+                print_error(f"Error: {error_detail}")
+                return False
         else:
-            print_error(f"Error: {response.text}")
+            print_error(f"Error ({response.status_code}): {response.text}")
             return False
 
     except Exception as e:
