@@ -91,6 +91,22 @@ class TestSubscriptionServiceUnit:
             test_address (Address): Dirección de prueba.
         """
         # Arrange
+        # Create products for subscription (service needs products matching "BeStrong")
+        product1 = Product(
+            name="BeStrong Protein",
+            description="Proteína para BeStrong",
+            brand="Test Brand",
+            category="Proteínas",
+            fitness_objectives=["muscle_gain"],
+            physical_activities=["weightlifting"],
+            nutritional_value="24g protein",
+            price=Decimal('899.99'),
+            stock=50,
+            is_active=True
+        )
+        db.add(product1)
+        db.commit()
+
         mock_stripe.create_payment_intent_with_saved_card.return_value = {
             "success": True,
             "payment_intent_id": "pi_test_123"
