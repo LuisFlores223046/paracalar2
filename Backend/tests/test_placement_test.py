@@ -30,7 +30,13 @@ class TestPlacementTestServiceUnit:
             "age": 25,
             "gender": "M",
             "exercise_freq": 5,
-            "activity_type": "weightlifting",
+            "activity_type": "Strength",
+            "activity_intensity": "High",
+            "diet_type": "High Protein",
+            "diet_special": "Any",
+            "supplements": "Yes",
+            "goal_declared": "Gain Muscle",
+            "sleep_hours": 7,
             "extra_field": "should be removed",
             "another_extra": 123
         }
@@ -46,9 +52,8 @@ class TestPlacementTestServiceUnit:
         assert "another_extra" not in filtered
 
     @patch('app.api.v1.placement_test.service.joblib.load')
-    @patch('app.api.v1.placement_test.service.pd.DataFrame')
     def test_predict_plan_bestrong(
-        self, mock_dataframe, mock_joblib_load
+        self, mock_joblib_load
     ):
         """
         Autor: Luis Flores
@@ -56,16 +61,26 @@ class TestPlacementTestServiceUnit:
         """
         # Arrange
         mock_model = Mock()
-        mock_model.predict.return_value = ["BeStrong"]
+        mock_model.predict.return_value = [0]  # Return index, not plan name
+
+        # Create proper mock encoders with transform method that just returns the value
+        # These match the actual encoder classes from the ML model
+        def create_encoder_mock(values_map):
+            encoder = Mock()
+            encoder.classes_ = list(values_map.keys())
+            def transform_func(values):
+                return [values_map.get(v, 0) for v in values]
+            encoder.transform = Mock(side_effect=transform_func)
+            return encoder
 
         mock_encoders = {
-            "gender": Mock(),
-            "activity_type": Mock(),
-            "activity_intensity": Mock(),
-            "diet_type": Mock(),
-            "diet_special": Mock(),
-            "supplements": Mock(),
-            "goal_declared": Mock()
+            "gender": create_encoder_mock({"M": 0, "F": 1}),
+            "activity_type": create_encoder_mock({"Strength": 0, "Cardio": 1, "Mixed": 2, "Any": 3}),
+            "activity_intensity": create_encoder_mock({"High": 0, "Moderate": 1, "Low": 2}),
+            "diet_type": create_encoder_mock({"Balanced": 0, "High Protein": 1, "Low Carb": 2}),
+            "diet_special": create_encoder_mock({"Any": 0, "Keto": 1, "Vegan": 2, "Vegetarian": 3}),
+            "supplements": create_encoder_mock({"Yes": 0, "No": 1}),
+            "goal_declared": create_encoder_mock({"Lose Weight": 0, "Maintain": 1, "Gain Muscle": 2})
         }
 
         mock_target_encoder = Mock()
@@ -77,12 +92,12 @@ class TestPlacementTestServiceUnit:
             "age": 25,
             "gender": "M",
             "exercise_freq": 5,
-            "activity_type": "weightlifting",
-            "activity_intensity": "high",
-            "diet_type": "high_protein",
-            "diet_special": "none",
-            "supplements": "yes",
-            "goal_declared": "muscle_gain",
+            "activity_type": "Strength",
+            "activity_intensity": "High",
+            "diet_type": "High Protein",
+            "diet_special": "Any",
+            "supplements": "Yes",
+            "goal_declared": "Gain Muscle",
             "sleep_hours": 7
         }
 
@@ -104,12 +119,12 @@ class TestPlacementTestServiceUnit:
             age=25,
             gender="M",
             exercise_freq=5,
-            activity_type="weightlifting",
-            activity_intensity="high",
-            diet_type="balanced",
-            diet_special="none",
-            supplements="no",
-            goal_declared="muscle_gain",
+            activity_type="Strength",
+            activity_intensity="High",
+            diet_type="Balanced",
+            diet_special="Any",
+            supplements="No",
+            goal_declared="Gain Muscle",
             sleep_hours=7
         )
 
@@ -129,12 +144,12 @@ class TestPlacementTestServiceUnit:
                 age=10,  # Menor que 13
                 gender="M",
                 exercise_freq=5,
-                activity_type="weightlifting",
-                activity_intensity="high",
-                diet_type="balanced",
-                diet_special="none",
-                supplements="no",
-                goal_declared="muscle_gain",
+                activity_type="Strength",
+                activity_intensity="High",
+                diet_type="Balanced",
+                diet_special="Any",
+                supplements="No",
+                goal_declared="Gain Muscle",
                 sleep_hours=7
             )
 
@@ -149,12 +164,12 @@ class TestPlacementTestServiceUnit:
                 age=25,
                 gender="M",
                 exercise_freq=8,  # Mayor que 7
-                activity_type="weightlifting",
-                activity_intensity="high",
-                diet_type="balanced",
-                diet_special="none",
-                supplements="no",
-                goal_declared="muscle_gain",
+                activity_type="Strength",
+                activity_intensity="High",
+                diet_type="Balanced",
+                diet_special="Any",
+                supplements="No",
+                goal_declared="Gain Muscle",
                 sleep_hours=7
             )
 
@@ -193,12 +208,12 @@ class TestPlacementTestAPIIntegration:
             "age": 25,
             "gender": "M",
             "exercise_freq": 5,
-            "activity_type": "weightlifting",
-            "activity_intensity": "high",
-            "diet_type": "high_protein",
-            "diet_special": "none",
-            "supplements": "yes",
-            "goal_declared": "muscle_gain",
+            "activity_type": "Strength",
+            "activity_intensity": "High",
+            "diet_type": "High Protein",
+            "diet_special": "Any",
+            "supplements": "Yes",
+            "goal_declared": "Gain Muscle",
             "sleep_hours": 7
         }
 
@@ -226,9 +241,8 @@ class TestPlacementTestFunctional:
     """
 
     @patch('app.api.v1.placement_test.service.joblib.load')
-    @patch('app.api.v1.placement_test.service.pd.DataFrame')
     def test_complete_placement_test_flow(
-        self, mock_dataframe, mock_joblib_load, db, test_user
+        self, mock_joblib_load, db, test_user
     ):
         """
         Autor: Luis Flores
@@ -237,19 +251,26 @@ class TestPlacementTestFunctional:
         """
         # Arrange - Mock del modelo ML
         mock_model = Mock()
-        mock_model.predict.return_value = ["BeStrong"]
+        mock_model.predict.return_value = [0]  # Return index, not plan name
+
+        # Create proper mock encoders with transform method that just returns the value
+        def create_encoder_mock(values_map):
+            encoder = Mock()
+            encoder.classes_ = list(values_map.keys())
+            def transform_func(values):
+                return [values_map.get(v, 0) for v in values]
+            encoder.transform = Mock(side_effect=transform_func)
+            return encoder
 
         mock_encoders = {
-            "gender": Mock(),
-            "activity_type": Mock(),
-            "activity_intensity": Mock(),
-            "diet_type": Mock(),
-            "diet_special": Mock(),
-            "supplements": Mock(),
-            "goal_declared": Mock()
+            "gender": create_encoder_mock({"M": 0, "F": 1}),
+            "activity_type": create_encoder_mock({"Strength": 0, "Cardio": 1, "Mixed": 2, "Any": 3}),
+            "activity_intensity": create_encoder_mock({"High": 0, "Moderate": 1, "Low": 2}),
+            "diet_type": create_encoder_mock({"Balanced": 0, "High Protein": 1, "Low Carb": 2}),
+            "diet_special": create_encoder_mock({"Any": 0, "Keto": 1, "Vegan": 2, "Vegetarian": 3}),
+            "supplements": create_encoder_mock({"Yes": 0, "No": 1}),
+            "goal_declared": create_encoder_mock({"Lose Weight": 0, "Maintain": 1, "Gain Muscle": 2})
         }
-        for encoder in mock_encoders.values():
-            encoder.transform.return_value = [0]
 
         mock_target_encoder = Mock()
         mock_target_encoder.inverse_transform.return_value = ["BeStrong"]
@@ -261,12 +282,12 @@ class TestPlacementTestFunctional:
             "age": 28,
             "gender": "M",
             "exercise_freq": 5,
-            "activity_type": "weightlifting",
-            "activity_intensity": "high",
-            "diet_type": "high_protein",
-            "diet_special": "none",
-            "supplements": "yes",
-            "goal_declared": "muscle_gain",
+            "activity_type": "Strength",
+            "activity_intensity": "High",
+            "diet_type": "High Protein",
+            "diet_special": "Any",
+            "supplements": "Yes",
+            "goal_declared": "Gain Muscle",
             "sleep_hours": 7
         }
 

@@ -186,7 +186,8 @@ def test_user(db):
         date_of_birth=date(1990, 1, 1),
         auth_type=AuthType.EMAIL,
         role=UserRole.USER,
-        account_status=True
+        account_status=True,
+        stripe_customer_id="cus_test_123"
     )
     db.add(user)
     db.commit()
@@ -274,6 +275,39 @@ def test_cart(db, test_user):
     db.add(cart)
     db.commit()
     db.refresh(cart)
+    return cart
+
+
+@pytest.fixture
+def test_cart_with_items(db, test_user, test_product):
+    """
+    Autor: Luis Flores
+    Descripción: Fixture que crea un carrito con items de prueba.
+    Parámetros:
+        db (Session): Sesión de base de datos.
+        test_user (User): Usuario de prueba.
+        test_product (Product): Producto de prueba.
+    Retorna:
+        ShoppingCart: Carrito con items de prueba.
+    """
+    from app.models.shopping_cart import ShoppingCart
+    from app.models.cart_item import CartItem
+
+    cart = ShoppingCart(user_id=test_user.user_id)
+    db.add(cart)
+    db.commit()
+    db.refresh(cart)
+
+    # Add 2 items to cart
+    cart_item = CartItem(
+        cart_id=cart.cart_id,
+        product_id=test_product.product_id,
+        quantity=2
+    )
+    db.add(cart_item)
+    db.commit()
+    db.refresh(cart)
+
     return cart
 
 
