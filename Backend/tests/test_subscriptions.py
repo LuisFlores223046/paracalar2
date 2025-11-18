@@ -316,7 +316,8 @@ class TestSubscriptionAPIIntegration:
         # Assert
         assert response.status_code == 200
         data = response.json()
-        assert data["has_subscription"] is True
+        assert "subscription_id" in data
+        assert data["subscription_status"] == SubscriptionStatus.ACTIVE.value
 
     def test_pause_subscription_endpoint(
         self, user_client, db, test_user, test_active_subscription
@@ -348,9 +349,8 @@ class TestSubscriptionFunctional:
     """
 
     @patch('app.api.v1.subscriptions.service.stripe_service')
-    @patch('app.api.v1.subscriptions.service.order_service')
     def test_complete_subscription_lifecycle(
-        self, mock_order_service, mock_stripe_service,
+        self, mock_stripe_service,
         db, test_user, test_fitness_profile, test_payment_method, test_address
     ):
         """
@@ -366,15 +366,26 @@ class TestSubscriptionFunctional:
             test_payment_method (PaymentMethod): Método de pago.
             test_address (Address): Dirección.
         """
-        # Paso 1: Crear suscripción
+        # Paso 1: Crear productos para suscripción
+        product1 = Product(
+            name="BeStrong Protein",
+            description="Proteína para BeStrong",
+            brand="Test Brand",
+            category="Proteínas",
+            fitness_objectives=["muscle_gain"],
+            physical_activities=["weightlifting"],
+            nutritional_value="24g protein",
+            price=Decimal('899.99'),
+            stock=50,
+            is_active=True
+        )
+        db.add(product1)
+        db.commit()
+
+        # Paso 2: Crear suscripción
         mock_stripe_service.create_payment_intent_with_saved_card.return_value = {
             "success": True,
             "payment_intent_id": "pi_test_123"
-        }
-        mock_order_service.create_order_from_cart.return_value = {
-            "success": True,
-            "order": Mock(order_id=1),
-            "points_earned": 99
         }
 
         result = subscription_service.create_subscription(
