@@ -25,12 +25,14 @@ from app.models.enum import PaymentType, OrderStatus
 @pytest.fixture
 def test_coupon(db: Session):
     """Fixture que crea un cupón de prueba"""
+    from datetime import date, timedelta
+
     coupon = Coupon(
-        code="TEST10",
-        discount_percentage=10.0,
-        is_active=True,
-        usage_limit=100,
-        current_usage=0
+        coupon_code="TEST10",
+        discount_value=Decimal('10.00'),
+        start_date=date.today(),
+        expiration_date=date.today() + timedelta(days=30),
+        is_active=True
     )
     db.add(coupon)
     db.commit()
