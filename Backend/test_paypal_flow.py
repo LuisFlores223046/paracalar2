@@ -127,14 +127,15 @@ async def create_address(client, token):
     print_step(3, "Crear Dirección de Envío")
 
     address_data = {
-        "address_line_1": "Av. Reforma 123",
-        "address_line_2": "Col. Centro",
+        "address_line1": "Av. Reforma 123",
+        "address_line2": "Col. Centro",
         "city": "Ciudad de México",
         "state": "CDMX",
-        "postal_code": "06000",
+        "zip_code": "06000",
         "country": "México",
-        "is_default": True,
-        "is_billing": False
+        "recipient_name": "Test PayPal",
+        "phone_number": "5512345678",
+        "is_default": True
     }
 
     headers = {"Authorization": f"Bearer {token}"}
