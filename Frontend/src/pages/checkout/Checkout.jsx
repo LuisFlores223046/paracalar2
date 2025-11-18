@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
 import { paymentService } from '../../services/payment.service'
+import { shippingService } from '../../services/shipping.service'
 import { toast } from 'react-toastify'
 
 export default function Checkout() {
@@ -9,6 +10,28 @@ export default function Checkout() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('stripe')
+  const [shippingCost, setShippingCost] = useState(0)
+  const [calculatingShipping, setCalculatingShipping] = useState(false)
+
+  useEffect(() => {
+    calculateShipping()
+  }, [cart])
+
+  const calculateShipping = async () => {
+    try {
+      setCalculatingShipping(true)
+      const data = await shippingService.calculateShipping({
+        cart_total: getCartTotal(),
+        items_count: cart?.items?.length || 0,
+      })
+      setShippingCost(data.shipping_cost || 0)
+    } catch (error) {
+      console.error('Failed to calculate shipping')
+      setShippingCost(10.00) // Fallback shipping cost
+    } finally {
+      setCalculatingShipping(false)
+    }
+  }
 
   const handleCheckout = async () => {
     try {
@@ -104,10 +127,26 @@ export default function Checkout() {
               ))}
             </div>
 
-            <div className="border-t pt-4 mb-6">
-              <div className="flex justify-between text-lg font-bold">
+            <div className="border-t pt-4 mb-6 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Subtotal</span>
+                <span>${getCartTotal().toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Shipping</span>
+                <span>
+                  {calculatingShipping ? (
+                    <span className="text-sm">Calculating...</span>
+                  ) : (
+                    `$${shippingCost.toFixed(2)}`
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-between text-lg font-bold pt-2 border-t">
                 <span>Total</span>
-                <span className="text-primary-600">${getCartTotal().toFixed(2)}</span>
+                <span className="text-primary-600">
+                  ${(getCartTotal() + shippingCost).toFixed(2)}
+                </span>
               </div>
             </div>
 
