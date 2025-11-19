@@ -1,159 +1,218 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuth } from './context/AuthContext'
+import { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "react-router-dom";
 
-// Layouts
-import MainLayout from './layouts/MainLayout'
-import AdminLayout from './layouts/AdminLayout'
+// Componentes Globales
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import Header from "./Componentes/Header";
+import Footer from "./Componentes/Footer";
+import CartSidebar from "./Componentes/CartSidebar";
+import AdminSidebar from "./Componentes/AdminSidebar";
+import { ProtectedRoute } from "./Componentes/ProtectedRoute";
 
-// Public Pages
-import Home from './pages/Home'
-import Login from './pages/auth/Login'
-import Signup from './pages/auth/Signup'
-import ForgotPassword from './pages/auth/ForgotPassword'
-import ResetPassword from './pages/auth/ResetPassword'
-import ProductDetails from './pages/products/ProductDetails'
-import ProductCatalog from './pages/products/ProductCatalog'
+// Páginas principales
+import Home from "./Home/HomePage";
+import AboutUs from "./Home/AboutUsPage";
 
-// Protected User Pages
-import Profile from './pages/user/Profile'
-import Cart from './pages/cart/Cart'
-import Checkout from './pages/checkout/Checkout'
-import OrderHistory from './pages/orders/OrderHistory'
-import OrderDetails from './pages/orders/OrderDetails'
-import PositioningTest from './pages/test/PositioningTest'
-import Subscriptions from './pages/subscriptions/Subscriptions'
-import LoyaltyProgram from './pages/loyalty/LoyaltyProgram'
+// Login y Registro
+import Login from "./Login/LoginPage";
+import Register from "./Login/RegisterPage";
+import RSelect from "./Login/RecoverySelect";
+import RCode from "./Login/RecoveryCode"; 
+import RPassword from "./Login/RecoveryPassword";
+import SetupP from "./Login/SetupProfile";
 
-// Admin Pages
-import AdminDashboard from './pages/admin/Dashboard'
-import AdminProducts from './pages/admin/Products'
-import AdminUsers from './pages/admin/Users'
-import AdminOrders from './pages/admin/Orders'
-import AdminAnalytics from './pages/admin/Analytics'
+// Perfil de usuario
+import ProfileUser from "./Profile/UserProfile";
+import PersonalInfo from "./Profile/PersonalInformation";
+import FitnessProfile from "./Profile/FitnessProfile";
+import Addresses from "./Profile/Addresses";
+import LoyaltyProgram from "./Profile/LoyaltyProgram.jsx";
+import SubscriptionPage from "./Profile/Subscription.jsx";
+import OrderHistory from "./Profile/OrderHistory";
+import PaymentMethods from "./Payments/PaymentMethods";
 
-// Protected Route Component
-function ProtectedRoute({ children, adminOnly = false }) {
-  const { user, isAuthenticated, loading } = useAuth()
+// Productos
+import Tienda from "./Componentes/Shop.jsx";
+import ProductDetail from "./Products/ProductDetails";
+import CartPage from "./Products/CartPage";
+import CheckoutPage from "./Products/CheckoutPage";
+import DoReviews from "./Products/Reviews";
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    )
-  }
+// Test de posicionamiento
+import PlacementTest from "./PositioningTest/Test";
+import PlacementTestQuestions from "./PositioningTest/PlacementTestQuestions";
+import TestResults from "./PositioningTest/TestResults";
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
+// Admin
+import ManageProducts from "./Admin/ManageProducts";
+import Dashboard from "./Admin/Dashboard";
 
-  if (adminOnly && user?.role !== 'ADMIN') {
-    return <Navigate to="/" replace />
-  }
+// Stripe
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_tu_clave_publica");
 
-  return children
-}
+// Estilos globales
+import "./index.css";
 
-function App() {
+// Mock data removido - ahora se obtiene del backend
+
+// --- MAIN LAYOUT ---
+const MainLayout = () => {
+  const [cartItems, setCartItems] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const location = useLocation();
+
+  const isCartOrCheckoutPage =
+    location.pathname === "/CartPage" || location.pathname === "/CheckoutPage";
+
+  const handleCartClick = () => {
+    if (!isCartOrCheckoutPage) setIsCartOpen(true);
+  };
+
+  const addToCart = (product) => {
+    setCartItems((prev) => {
+      const productId = product.product_id || product.id;
+      const exists = prev.find((item) => (item.product_id || item.id) === productId);
+      if (exists) {
+        return prev.map((item) =>
+          (item.product_id || item.id) === productId ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      // Normalizar estructura para compatibilidad
+      return [...prev, { 
+        ...product,
+        id: productId,
+        product_id: productId,
+        title: product.name || product.title,
+        name: product.name || product.title,
+        quantity: 1 
+      }];
+    });
+  };
+
+  const removeFromCart = (id) => {
+    setCartItems((prev) => prev.filter((item) => (item.product_id || item.id) !== id));
+  };
+
+  const updateQuantity = (id, qty) => {
+    if (qty <= 0) return removeFromCart(id);
+    setCartItems((prev) =>
+      prev.map((item) => ((item.product_id || item.id) === id ? { ...item, quantity: qty } : item))
+    );
+  };
+
+  const clearCart = () => setCartItems([]);
+
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<MainLayout />}>
-        <Route index element={<Home />} />
-        <Route path="login" element={<Login />} />
-        <Route path="signup" element={<Signup />} />
-        <Route path="forgot-password" element={<ForgotPassword />} />
-        <Route path="reset-password" element={<ResetPassword />} />
-        <Route path="products" element={<ProductCatalog />} />
-        <Route path="products/:productId" element={<ProductDetails />} />
+    <>
+      <Header
+        cartItems={cartItems}
+        onCartClick={handleCartClick}
+        isCartDisabled={isCartOrCheckoutPage}
+      />
 
-        {/* Protected User Routes */}
-        <Route
-          path="profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="cart"
-          element={
-            <ProtectedRoute>
-              <Cart />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="checkout"
-          element={
-            <ProtectedRoute>
-              <Checkout />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="orders"
-          element={
-            <ProtectedRoute>
-              <OrderHistory />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="orders/:orderId"
-          element={
-            <ProtectedRoute>
-              <OrderDetails />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="positioning-test"
-          element={
-            <ProtectedRoute>
-              <PositioningTest />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="subscriptions"
-          element={
-            <ProtectedRoute>
-              <Subscriptions />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="loyalty"
-          element={
-            <ProtectedRoute>
-              <LoyaltyProgram />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
+      <CartSidebar
+        isOpen={isCartOpen && !isCartOrCheckoutPage}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        onRemove={removeFromCart}
+        onUpdateQuantity={updateQuantity}
+      />
 
-      {/* Admin Routes */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute adminOnly>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<AdminDashboard />} />
-        <Route path="products" element={<AdminProducts />} />
-        <Route path="users" element={<AdminUsers />} />
-        <Route path="orders" element={<AdminOrders />} />
-        <Route path="analytics" element={<AdminAnalytics />} />
-      </Route>
+      <Outlet
+        context={{
+          cartItems,
+          addToCart,
+          removeFromCart,
+          updateQuantity,
+          setIsCartOpen,
+          clearCart,
+        }}
+      />
 
-      {/* 404 Route */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  )
+      <Footer />
+    </>
+  );
+};
+
+// --- ADMIN LAYOUT ---
+const AdminLayout = () => (
+  <div className="flex min-h-screen">
+    <AdminSidebar />
+    <main className="flex-1 ml-20">
+      <Outlet />
+    </main>
+  </div>
+);
+
+// --- RUTAS PRINCIPALES ---
+export default function App() {
+  return (
+    <Router>
+      <Routes>
+        {/* Rutas Públicas - Accesibles sin autenticación */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/RegisterPage" element={<Register />} />
+        <Route path="/RecoverySelect" element={<RSelect />} />
+        <Route path="/RecoveryCode" element={<RCode />} />
+        <Route path="/RecoveryPassword" element={<RPassword />} />
+        <Route path="/SetupProfile" element={<ProtectedRoute><SetupP /></ProtectedRoute>} />
+
+        {/* Layout principal */}
+        <Route element={<MainLayout />}>
+          {/* HomePage - Accesible sin autenticación */}
+          <Route path="/" element={<Home />} />
+          <Route path="/aboutUsPage" element={<AboutUs />} />
+
+          {/* Rutas Protegidas - Requieren autenticación */}
+          <Route path="/placement-test/questions" element={<ProtectedRoute><PlacementTestQuestions /></ProtectedRoute>} />
+          <Route path="/placement-test/results" element={<ProtectedRoute><TestResults /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfileUser /></ProtectedRoute>} />
+
+          {/* Tienda - Protegida */}
+          <Route path="/Productos" element={<Tienda />} />
+          <Route path="/:productName/:id" element={<ProductDetail />} />
+          <Route path="/CartPage" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+          <Route path="/CheckoutPage" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+
+          {/* Subscripción - Protegida */}
+          <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+
+          {/* Órdenes - Protegidas */}
+          <Route path="/order-history" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
+          <Route path="/reviews/:orderId" element={<ProtectedRoute><DoReviews /></ProtectedRoute>} />
+
+          {/* Test - Protegido */}
+          <Route path="/placement-test" element={<ProtectedRoute><PlacementTest /></ProtectedRoute>} />
+
+          {/* Perfil - Protegido */}
+          <Route path="/personal-info" element={<ProtectedRoute><PersonalInfo /></ProtectedRoute>} />
+          <Route path="/addresses" element={<ProtectedRoute><Addresses /></ProtectedRoute>} />
+          <Route path="/fitness-profile" element={<ProtectedRoute><FitnessProfile /></ProtectedRoute>} />
+
+          {/* Pagos - Protegido */}
+          <Route
+            path="/payment-methods"
+            element={
+              <ProtectedRoute>
+                <Elements stripe={stripePromise}>
+                  <PaymentMethods />
+                </Elements>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Lealtad - Protegida */}
+          <Route path="/loyalty-program" element={<ProtectedRoute><LoyaltyProgram /></ProtectedRoute>} />
+        </Route>
+
+        {/* Admin - Protegido */}
+        <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+          <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="products" element={<ManageProducts />} />
+        </Route>
+      </Routes>
+    </Router>
+  );
 }
-
-export default App
