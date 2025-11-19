@@ -452,12 +452,15 @@ class SubscriptionService:
         try:
             # Verificar que tiene stripe_customer_id
             if not user.stripe_customer_id:
-                return {"success": False, "error": "Usuario no tiene customer ID de Stripe"}
-            
+                return {"success": False, "error": "Usuario no tiene customer ID de Stripe configurado"}
+
             # Obtener payment method
             payment_method = subscription.payment_method
-            if not payment_method or not payment_method.provider_ref:
-                return {"success": False, "error": "Método de pago no válido"}
+            if not payment_method:
+                return {"success": False, "error": "No se encontró método de pago asociado a la suscripción"}
+
+            if not payment_method.provider_ref:
+                return {"success": False, "error": f"El método de pago no tiene referencia de Stripe (provider_ref vacío). Payment ID: {payment_method.payment_id}"}
             
             # Seleccionar productos
             products = SubscriptionService._select_products_for_subscription(
@@ -500,15 +503,21 @@ class SubscriptionService:
             if not charge_result.get("success"):
                 # Incrementar intentos fallidos
                 subscription.failed_payment_attempts += 1
-                
+
                 # Si falla 3 veces, pausar la suscripción
                 if subscription.failed_payment_attempts >= 3:
                     subscription.subscription_status = SubscriptionStatus.PAUSED
-                
+
                 db.commit()
+
+                # Obtener mensaje de error descriptivo
+                error_msg = charge_result.get('error', 'Error desconocido en el cobro')
+                if not error_msg or error_msg.strip() == '':
+                    error_msg = 'Error en el cobro. Verifique que Stripe esté configurado correctamente y que el método de pago sea válido.'
+
                 return {
                     "success": False,
-                    "error": f"Error en el cobro: {charge_result.get('error')}"
+                    "error": f"Error en el cobro: {error_msg}"
                 }
             
             # Crear la orden

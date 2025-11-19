@@ -259,19 +259,22 @@ class StripeService:
                 }
                 
         except stripe.error.CardError as e:
+            error_msg = e.user_message or str(e) or "Error con la tarjeta"
             return {
                 'success': False,
-                'error': e.user_message or str(e)
+                'error': error_msg
             }
         except stripe.error.StripeError as e:
+            error_msg = str(e) if str(e) else "Error de Stripe desconocido"
             return {
                 'success': False,
-                'error': f"Stripe error: {str(e)}"
+                'error': f"Stripe error: {error_msg}"
             }
         except Exception as e:
+            error_msg = str(e) if str(e) else "Error inesperado al procesar el pago"
             return {
                 'success': False,
-                'error': str(e)
+                'error': error_msg
             }
     
     def list_customer_payment_methods(self, customer_id: str) -> Dict:
