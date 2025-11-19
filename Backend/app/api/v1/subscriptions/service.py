@@ -4,7 +4,7 @@
 #              cobros recurrentes, selección de productos y manejo de estados.
 
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from sqlalchemy import and_, cast, Text
 from typing import Dict, List
 from datetime import date, timedelta
 from decimal import Decimal
@@ -413,18 +413,19 @@ class SubscriptionService:
             
             selected_products.extend(products)
         
-        # Si no se encontraron suficientes productos por nombre, buscar por objetivos
+        # Si no se encontraron suficientes productos por nombre, buscar por otros criterios
         if len(selected_products) < 3:
             fitness_objectives = attributes.get("fitness_objectives", [])
-            
+
+            # Obtener productos activos con stock disponible
+            # Si hay objetivos fitness, intentar buscar por categoría o simplemente productos disponibles
             additional_products = db.query(Product).filter(
                 and_(
                     Product.is_active == True,
-                    Product.stock > 0,
-                    Product.fitness_objectives.contains(fitness_objectives)
+                    Product.stock > 0
                 )
             ).limit(3 - len(selected_products)).all()
-            
+
             selected_products.extend(additional_products)
         
         return selected_products[:3]  # Máximo 3 productos por suscripción
