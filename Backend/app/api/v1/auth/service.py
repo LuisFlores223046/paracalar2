@@ -181,59 +181,6 @@ class CognitoService:
                 await s3_service_instance.delete_profile_img(old_url=profile_image_url, user_id=temp_s3_id)
             return {"success": False, "error": str(e)}
         
-    async def process_s3_and_cognito_updates_sync(self, 
-                                            profile_image: bytes, 
-                                            cognito_sub: str, 
-                                            temp_s3_id: str, 
-                                            profile_image_url: str,
-                                            db: Session = Depends(get_db)):
-        """Tarea síncrona de limpieza y actualización que se ejecuta en segundo plano."""
-        s3_service_instance = S3Service()
-        
-        if not profile_image:
-            return
-            
-        try:
-            transfer_upload_result = await s3_service_instance.upload_profile_img(
-                file_content=profile_image,
-                user_id=cognito_sub
-            )
-            
-            if transfer_upload_result["success"]:
-                final_profile_image_url = transfer_upload_result["file_url"]
-                
-                await s3_service_instance.delete_profile_img(old_url=profile_image_url, user_id=temp_s3_id)
-
-               # #self.client.admin_update_user_attributes(
-                #    UserPoolId=self.user_pool_id,
-                 #   Username=self.client.admin_get_user(UserPoolId=self.user_pool_id, Username=cognito_sub)['Username'], 
-                  ##     {'Name': 'picture', 'Value': final_profile_image_url}
-                    #]
-                #)
-                def update_user_picture():
-                    self.client.admin_update_user_attributes(
-                        UserPoolId=self.user_pool_id,
-                        #Username=email, 
-                        UserAttributes=[
-                            {'Name': 'picture', 'Value': final_profile_image_url}
-                        ]
-                    )
-
-                await run_in_threadpool(update_user_picture)
-
-                # 3. Actualiza la DB local con la URL final (síncrono, se envuelve)
-                def update_db_picture():
-                    user = db.query(User).filter(User.cognito_sub == cognito_sub).first()
-                    if user:
-                        user.profile_picture = final_profile_image_url
-                        db.commit()
-                
-                await run_in_threadpool(update_db_picture)
-                
-        except Exception as e:
-            print(f"ERROR TAREA DE FONDO: Falló la re-subida o limpieza en S3: {e}")
-
-    
     async def confirm_sign_up(self, email: str, code: str) -> Dict:
         """
         Confirma el registro con el código enviado al email.
