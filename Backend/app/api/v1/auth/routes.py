@@ -94,11 +94,11 @@ async def register_user(
     if image_bytes:
         background_tasks.add_task(
             cognito_service.process_s3_and_cognito_updates_sync,
-            profile_image=image_bytes,
-            cognito_sub=result["user_sub"],
+            db=db,
             temp_s3_id=result["temp_s3_id"],
-            profile_image_url=result["profile_image_url"],
-            db=db
+            final_user_id=result["user_id"],
+            cognito_sub=result["user_sub"],
+            profile_image=image_bytes
         )
     
     return result
