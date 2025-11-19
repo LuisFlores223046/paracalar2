@@ -106,10 +106,10 @@ def get_product_reviews(
     
     response = []
     for review in reviews:
-        review_dict = schemas.ReviewResponse.from_orm(review)
+        review_dict = schemas.ReviewResponse.model_validate(review)
         review_dict.user_name = f"{review.user.first_name} {review.user.last_name}" if review.user else "Usuario"
         response.append(review_dict)
-    
+
     return response
 
 
@@ -145,8 +145,8 @@ def create_product_review(
         user_id=current_user.user_id,
         review_data=review_data
     )
-    
-    response = schemas.ReviewResponse.from_orm(review)
+
+    response = schemas.ReviewResponse.model_validate(review)
     response.user_name = f"{current_user.first_name} {current_user.last_name}"
-    
+
     return response

@@ -227,8 +227,8 @@ class ReviewService:
         product_id: int,
         user_id: int,
         review_data: schemas.ReviewCreate,
-        order_id: int
-) -> Review:
+        order_id: Optional[int] = None
+    ) -> Review:
         """
         Autor: Luis Flores
         Descripción: Crea una nueva reseña para un producto. Verifica que el producto
@@ -239,6 +239,7 @@ class ReviewService:
             product_id (int): ID del producto a reseñar.
             user_id (int): ID del usuario que crea la reseña.
             review_data (ReviewCreate): Datos de la reseña (rating y texto).
+            order_id (Optional[int]): ID de la orden asociada (opcional).
         Retorna:
             Review: Reseña creada.
         Excepciones:

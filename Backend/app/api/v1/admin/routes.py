@@ -267,14 +267,13 @@ async def create_admin_user(
     gender: Optional[str] = Form(None),
     birth_date: Optional[str] = Form(None),
     profile_image: Optional[UploadFile] = File(None),
-    current_user: User = Depends(get_current_user),  # Por ahora solo requiere autenticación
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """
     Autor: Luis Flores
     Descripción: Crea un nuevo usuario con rol de administrador con imagen de perfil opcional.
-                 TEMPORALMENTE ACCESIBLE: Cualquier usuario autenticado puede crear admins.
-                 TODO: Cambiar a require_admin cuando esté listo.
+                 REQUIERE PERMISOS DE ADMINISTRADOR.
     Parámetros:
         email (str): Email del nuevo administrador.
         password (str): Contraseña del administrador.
@@ -386,14 +385,13 @@ async def create_admin_user(
 @router.patch("/users/promote-to-admin", response_model=schemas.AdminUserResponse)
 def promote_user_to_admin(
     promotion_data: schemas.PromoteToAdminRequest,
-    current_user: User = Depends(get_current_user),  # Por ahora solo requiere autenticación
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """
     Autor: Luis Flores
     Descripción: Convierte un usuario regular existente a administrador.
-                 TEMPORALMENTE ACCESIBLE: Cualquier usuario autenticado puede promover a otros.
-                 TODO: Cambiar a require_admin cuando esté listo.
+                 REQUIERE PERMISOS DE ADMINISTRADOR.
     Parámetros:
         promotion_data (PromoteToAdminRequest): ID del usuario a promover.
         current_user (User): Usuario autenticado (temporal, debería ser admin).
@@ -436,14 +434,13 @@ def promote_user_to_admin(
 
 @router.get("/users/admins", response_model=list[schemas.AdminUserResponse])
 def get_all_admins(
-    current_user: User = Depends(get_current_user),  # Por ahora solo requiere autenticación
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """
     Autor: Luis Flores
     Descripción: Obtiene la lista de todos los administradores del sistema.
-                 TEMPORALMENTE ACCESIBLE: Cualquier usuario autenticado puede ver la lista.
-                 TODO: Cambiar a require_admin cuando esté listo.
+                 REQUIERE PERMISOS DE ADMINISTRADOR.
     Parámetros:
         current_user (User): Usuario autenticado (temporal, debería ser admin).
         db (Session): Sesión de base de datos.

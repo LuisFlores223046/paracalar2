@@ -34,9 +34,8 @@ def get_cart(
     
     # Preparar respuesta con cálculos
     items_response = []
-    total_items = 0
     total_price = 0.0
-    
+
     for item in cart.cart_items:
         # Obtener imagen principal del producto
         primary_image = None
@@ -72,7 +71,10 @@ def get_cart(
         items_response.append(item_response)
         subtotal = item.quantity * item.product.price
         total_price += float(subtotal)
-    
+
+    # Calcular total de items sumando las cantidades
+    total_items = sum(item.quantity for item in cart.cart_items)
+
     return schemas.ShoppingCartResponse(
         cart_id=cart.cart_id,
         user_id=cart.user_id,
